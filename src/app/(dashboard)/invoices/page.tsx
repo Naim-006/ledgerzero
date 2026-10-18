@@ -47,7 +47,16 @@ export default function InvoicesPage() {
   const [paymentAmountStr, setPaymentAmountStr] = useState("");
   const [paymentDate, setPaymentDate] = useState("2026-10-18");
 
-  // Simulated OCR Upload Modal
+  // Manual Create Invoice Modal
+  const [isManualModalOpen, setIsManualModalOpen] = useState(false);
+  const [manualInvNum, setManualInvNum] = useState("");
+  const [manualCounterparty, setManualCounterparty] = useState("");
+  const [manualDirection, setManualDirection] = useState<InvoiceDirection>("receivable");
+  const [manualAmountStr, setManualAmountStr] = useState("");
+  const [manualDueDate, setManualDueDate] = useState("2026-10-25");
+  const [manualDescription, setManualDescription] = useState("");
+
+  // Optional OCR Upload Modal (Secondary)
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isExtracting, setIsExtracting] = useState(false);
@@ -76,6 +85,51 @@ export default function InvoicesPage() {
   useEffect(() => {
     loadInvoices();
   }, [loadInvoices]);
+
+  const handleCreateManualInvoice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualCounterparty || !manualAmountStr) return;
+    const invNum = manualInvNum.trim() || `INV-${Math.floor(1000 + Math.random() * 9000)}`;
+    const amtMinor = parseDecimalToMinorUnits(manualAmountStr, activeCurrency);
+
+    try {
+      await dataService.createInvoice({
+        businessId: business?.id || "biz_default",
+        invoiceNumber: invNum,
+        counterpartyId: `cp-${Date.now()}`,
+        counterpartyName: manualCounterparty,
+        direction: manualDirection,
+        issueDate: "2026-10-18",
+        dueDate: manualDueDate || "2026-10-25",
+        totalAmount: amtMinor,
+        currency: activeCurrency,
+        status: "issued",
+        lineItems: [
+          {
+            id: `li-${Date.now()}`,
+            description: manualDescription || (manualDirection === "receivable" ? "Sales Invoice" : "Vendor Bill"),
+            quantity: 1,
+            unitPrice: amtMinor,
+            taxRatePercent: 0,
+            subtotal: amtMinor,
+            taxAmount: 0,
+            total: amtMinor,
+          },
+        ],
+        subtotal: amtMinor,
+        taxTotal: 0,
+        amountPaid: 0,
+      });
+      setIsManualModalOpen(false);
+      setManualInvNum("");
+      setManualCounterparty("");
+      setManualAmountStr("");
+      setManualDescription("");
+      await loadInvoices();
+    } catch (err) {
+      console.error("Failed to create manual invoice:", err);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -215,6 +269,18 @@ export default function InvoicesPage() {
             variant="primary"
             size="sm"
             onClick={() => {
+              setManualInvNum(`INV-${Math.floor(1000 + Math.random() * 9000)}`);
+              setIsManualModalOpen(true);
+            }}
+            disabled={!permissions.canMutateFinancialRecords}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Create Invoice / Bill
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
               setUploadedFile(null);
               setExtractedData(null);
               setIsUploadModalOpen(true);
@@ -222,7 +288,7 @@ export default function InvoicesPage() {
             disabled={!permissions.canMutateFinancialRecords}
           >
             <Upload className="w-3.5 h-3.5" />
-            Upload Bill or Receipt
+            Upload File
           </Button>
         </div>
       </div>
@@ -572,6 +638,85 @@ export default function InvoicesPage() {
           </form>
         </Modal>
       )}
+
+      {/* Create Manual Invoice Modal */}
+      <Modal
+        isOpen={isManualModalOpen}
+        onClose={() => setIsManualModalOpen(false)}
+        title="Create New Invoice or Bill"
+        description="Add a customer invoice or vendor bill directly without needing to upload files"
+      >
+        <form onSubmit={handleCreateManualInvoice} className="space-y-4 text-xs">
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label="Invoice Number"
+              placeholder="e.g. INV-1001"
+              value={manualInvNum}
+              onChange={(e) => setManualInvNum(e.target.value)}
+              required
+            />
+
+            <Select
+              label="Direction"
+              value={manualDirection}
+              onChange={(e) => setManualDirection(e.target.value as InvoiceDirection)}
+              options={[
+                { value: "receivable", label: "Receivable (Customer Invoice)" },
+                { value: "payable", label: "Payable (Supplier Bill)" },
+              ]}
+            />
+          </div>
+
+          <Input
+            label={manualDirection === "receivable" ? "Customer / Client Name" : "Supplier / Vendor Name"}
+            placeholder="e.g. Beijing Technology Corp or Shenzhen Electronics"
+            value={manualCounterparty}
+            onChange={(e) => setManualCounterparty(e.target.value)}
+            required
+          />
+
+          <div className="grid grid-cols-2 gap-3">
+            <Input
+              label={`Total Amount (${activeCurrency})`}
+              type="number"
+              step="0.01"
+              placeholder="e.g. 1500.00"
+              value={manualAmountStr}
+              onChange={(e) => setManualAmountStr(e.target.value)}
+              required
+            />
+
+            <Input
+              label="Payment Due Date"
+              type="date"
+              value={manualDueDate}
+              onChange={(e) => setManualDueDate(e.target.value)}
+              required
+            />
+          </div>
+
+          <Input
+            label="Description / Purpose (Optional)"
+            placeholder="e.g. POS Hardware supplies, consulting, inventory order"
+            value={manualDescription}
+            onChange={(e) => setManualDescription(e.target.value)}
+          />
+
+          <div className="pt-4 border-t border-slateSurface-100 flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsManualModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" size="sm">
+              Save & Register Invoice
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

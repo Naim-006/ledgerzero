@@ -198,7 +198,7 @@ export default function TransactionsPage() {
             {transactions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center py-12 text-muted-foreground text-xs">
-                  No transactions recorded yet. Click &quot;+ Add Transaction&quot; or &quot;Import Bank CSV&quot; to begin.
+                  No transactions recorded yet. Click &quot;+ Add Transaction&quot; to begin.
                 </TableCell>
               </TableRow>
             ) : (

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { detectAIProviderAndModel, cachedAISettings } from "@/lib/ai/config";
+import { detectAIProviderAndModel, cachedAISettings, isRealApiKey } from "@/lib/ai/config";
 
 function getSupabaseServerClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -27,7 +27,8 @@ export async function GET() {
   }
 
   const rawKey = cachedAISettings.ai_api_key || "";
-  const maskedKey = rawKey
+  const isReal = isRealApiKey(rawKey);
+  const maskedKey = isReal
     ? rawKey.length > 8
       ? rawKey.slice(0, 4) + "••••••••" + rawKey.slice(-4)
       : "••••••••"
@@ -37,7 +38,8 @@ export async function GET() {
     settings: {
       ...cachedAISettings,
       ai_api_key: maskedKey,
-      raw_key_present: Boolean(rawKey),
+      has_key: isReal,
+      raw_key_present: isReal,
     },
   });
 }
@@ -46,11 +48,24 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
+    const explicitProvider = body.ai_provider;
     const rawApiKey = body.ai_api_key !== undefined ? String(body.ai_api_key).trim() : undefined;
+
+    // Only update key if user actually submitted a real unmasked key or explicitly cleared it ("")
     if (rawApiKey !== undefined) {
-      cachedAISettings.ai_api_key = rawApiKey;
-      const detected = detectAIProviderAndModel(rawApiKey);
-      cachedAISettings.ai_provider = detected.provider;
+      if (rawApiKey === "") {
+        cachedAISettings.ai_api_key = "";
+      } else if (isRealApiKey(rawApiKey)) {
+        cachedAISettings.ai_api_key = rawApiKey;
+        const detected = detectAIProviderAndModel(rawApiKey, explicitProvider);
+        cachedAISettings.ai_provider = explicitProvider || detected.provider;
+        cachedAISettings.ai_model = detected.model;
+      }
+    }
+
+    if (explicitProvider && explicitProvider !== "auto") {
+      cachedAISettings.ai_provider = explicitProvider;
+      const detected = detectAIProviderAndModel(cachedAISettings.ai_api_key || "", explicitProvider);
       cachedAISettings.ai_model = detected.model;
     }
 

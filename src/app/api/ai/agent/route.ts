@@ -204,33 +204,59 @@ Respond in friendly, natural language. If the user writes in Chinese, answer in 
       }
     }
 
-    // 5. Groq Fast Llama
+    // 5. Groq Fast Llama (Llama 3.1 8B Instant primary, with 3.3 70B fallback)
     if (provider === "groq") {
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${effectiveApiKey}`,
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: prompt },
-          ],
-          temperature: 0.3,
-        }),
-      });
+      const modelsToTry = [
+        "llama-3.1-8b-instant",
+        "llama-3.3-70b-versatile",
+      ];
+      let lastGroqError = "";
 
-      if (response.ok) {
-        const data = await response.json();
-        return NextResponse.json({
-          connected: true,
-          source: "groq_live",
-          model: "llama-3.3-70b-versatile",
-          answer: data.choices?.[0]?.message?.content || "",
-        });
+      for (const groqModel of modelsToTry) {
+        try {
+          const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${effectiveApiKey}`,
+            },
+            body: JSON.stringify({
+              model: groqModel,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt },
+              ],
+              temperature: 0.3,
+              max_tokens: 800,
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            return NextResponse.json({
+              connected: true,
+              source: "groq_live",
+              model: groqModel,
+              answer: data.choices?.[0]?.message?.content || "",
+            });
+          } else {
+            const errJson = await response.json().catch(() => null);
+            lastGroqError = errJson?.error?.message || `HTTP ${response.status} from Groq`;
+            // If the key is invalid or unauthorized, stop immediately rather than trying other models
+            if (response.status === 401 || errJson?.error?.code === "invalid_api_key") {
+              break;
+            }
+          }
+        } catch (fetchErr: any) {
+          lastGroqError = fetchErr.message || "Network request failed";
+        }
       }
+
+      return NextResponse.json({
+        connected: false,
+        error: true,
+        answer: `⚠️ **Groq API Error:** ${lastGroqError}. Please verify that your Groq API key (starts with gsk_...) is valid and has active quota.`,
+      });
     }
 
     return NextResponse.json({

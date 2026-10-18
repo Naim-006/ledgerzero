@@ -63,7 +63,7 @@ export function Sidebar() {
         { name: "Shop Overview", href: "/", icon: LayoutDashboard },
         { name: "POS Sell Register", href: "/pos", icon: ShoppingCart },
         { name: "Product Stock", href: "/inventory", icon: Boxes },
-        { name: "Money In & Out", href: "/transactions", icon: Receipt },
+        { name: "Transactions", href: "/transactions", icon: Receipt },
         { name: "Bills & Invoices", href: "/invoices", icon: FileText },
       ],
     },

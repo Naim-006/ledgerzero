@@ -12,29 +12,43 @@ export function detectAIProviderAndModel(
   apiKey: string,
   preferredProvider?: string
 ): AIProviderInfo {
-  const key = (apiKey || "").trim();
+  const key = (apiKey || "").trim().replace(/^["']|["']$/g, "").trim();
+  const prov = (preferredProvider || "").toLowerCase().trim();
 
-  if (preferredProvider === "deepseek") {
+  if (prov === "groq") {
+    return { provider: "groq", model: "llama-3.1-8b-instant", name: "Groq Fast Llama", origin: "Global" };
+  }
+  if (prov === "deepseek") {
     return { provider: "deepseek", model: "deepseek-chat", name: "DeepSeek (深度求索)", origin: "China" };
   }
-  if (preferredProvider === "glm" || preferredProvider === "zhipu") {
+  if (prov === "glm" || prov === "zhipu") {
     return { provider: "glm", model: "glm-4-flash", name: "GLM (智谱 AI)", origin: "China" };
   }
-  if (preferredProvider === "qwen" || preferredProvider === "dashscope") {
+  if (prov === "qwen" || prov === "dashscope") {
     return { provider: "qwen", model: "qwen-turbo", name: "Qwen (通义千问)", origin: "China" };
   }
+  if (prov === "openai") {
+    return { provider: "openai", model: "gpt-4o-mini", name: "OpenAI GPT-4o-mini", origin: "Global" };
+  }
+  if (prov === "gemini") {
+    return { provider: "gemini", model: "gemini-1.5-flash", name: "Google Gemini", origin: "Global" };
+  }
 
+  // Auto-detect based on key prefix
+  if (key.startsWith("gsk_") || key.startsWith("gsk-") || key.toLowerCase().includes("groq")) {
+    return { provider: "groq", model: "llama-3.1-8b-instant", name: "Groq Fast Llama", origin: "Global" };
+  }
   if (key.startsWith("sk-ant")) {
     return { provider: "anthropic", model: "claude-3-5-sonnet-20241022", name: "Anthropic Claude", origin: "Global" };
   }
   if (key.startsWith("AIza")) {
     return { provider: "gemini", model: "gemini-1.5-flash", name: "Google Gemini", origin: "Global" };
   }
-  if (key.startsWith("gsk_")) {
-    return { provider: "groq", model: "llama-3.3-70b-versatile", name: "Groq Fast Llama", origin: "Global" };
-  }
-  if (key.startsWith("glm") || key.includes(".")) {
+  if (key.startsWith("glm") || (key.length > 30 && key.includes("."))) {
     return { provider: "glm", model: "glm-4-flash", name: "GLM (智谱 AI)", origin: "China" };
+  }
+  if (key.startsWith("sk-proj-")) {
+    return { provider: "openai", model: "gpt-4o-mini", name: "OpenAI GPT-4o-mini", origin: "Global" };
   }
 
   // For general sk-... keys, default to DeepSeek (China Flagship) or OpenAI compatible
@@ -51,18 +65,27 @@ export const cachedAISettings: Record<string, string> = {
     "You are LEDGER ZERO AI, an autonomous financial co-pilot and business agent for small businesses (中小企业智能金融助手). You analyze cash positions, sales hisab, inventory stock, invoices, and working capital in Chinese Yuan (CNY / ¥).",
 };
 
+export function isRealApiKey(key?: string): boolean {
+  if (!key) return false;
+  const trimmed = key.trim().replace(/^["']|["']$/g, "").trim();
+  return trimmed.length >= 8 && !trimmed.includes("•") && !trimmed.includes("****");
+}
+
 export async function getEffectiveServerApiKey(explicitKey?: string): Promise<string> {
-  if (explicitKey && explicitKey.trim()) {
-    return explicitKey.trim();
+  if (isRealApiKey(explicitKey)) {
+    return explicitKey!.trim().replace(/^["']|["']$/g, "").trim();
   }
-  if (cachedAISettings.ai_api_key && cachedAISettings.ai_api_key.trim()) {
+  if (isRealApiKey(cachedAISettings.ai_api_key)) {
     return cachedAISettings.ai_api_key.trim();
   }
-  if (process.env.DEEPSEEK_API_KEY) {
-    return process.env.DEEPSEEK_API_KEY.trim();
+  if (isRealApiKey(process.env.GROQ_API_KEY)) {
+    return process.env.GROQ_API_KEY!.trim();
   }
-  if (process.env.OPENAI_API_KEY) {
-    return process.env.OPENAI_API_KEY.trim();
+  if (isRealApiKey(process.env.DEEPSEEK_API_KEY)) {
+    return process.env.DEEPSEEK_API_KEY!.trim();
+  }
+  if (isRealApiKey(process.env.OPENAI_API_KEY)) {
+    return process.env.OPENAI_API_KEY!.trim();
   }
 
   // Attempt to fetch from Supabase system_settings

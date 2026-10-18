@@ -25,7 +25,6 @@ import {
   Zap,
   CheckCircle2,
   Clock,
-  Sparkles,
   ShoppingCart,
 } from "lucide-react";
 import Link from "next/link";
@@ -102,12 +101,6 @@ export default function OverviewPage() {
               POS Quick Sell
             </Button>
           </Link>
-          <Link href="/ai-workspace">
-            <Button variant="outline" size="sm" className="font-semibold text-xs">
-              <Sparkles className="w-3.5 h-3.5 mr-1.5 text-forest" />
-              AI Co-Pilot
-            </Button>
-          </Link>
           <Link href="/action-center">
             <Button variant="outline" size="sm" className="text-xs">
               <Zap className="w-3.5 h-3.5 mr-1 text-amber-500" />
@@ -149,9 +142,9 @@ export default function OverviewPage() {
             </div>
           </div>
 
-          <Link href="/ai-workspace?prompt=Help%20me%20avoid%20a%20cash%20shortage%20next%20week">
+          <Link href="/cash-flow">
             <button className="text-xs font-semibold text-rose-700 dark:text-rose-300 hover:text-rose-900 flex items-center gap-1 shrink-0">
-              Get AI Advice
+              Review Cash Plan
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </Link>

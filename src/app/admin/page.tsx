@@ -44,10 +44,13 @@ export default function AdminPortalPage() {
 
   // AI Configuration State
   const [aiApiKey, setAiApiKey] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState<string>("auto");
+  const [hasSavedKey, setHasSavedKey] = useState<boolean>(false);
+  const [maskedSavedKey, setMaskedSavedKey] = useState<string>("");
   const [showApiKey, setShowApiKey] = useState(false);
   const [aiAgentEnabled, setAiAgentEnabled] = useState(true);
   const [aiSystemPrompt, setAiSystemPrompt] = useState(
-    "You are LEDGER ZERO AI, an autonomous financial co-pilot for small businesses. You analyze cash positions, overdue invoices, and impending vendor payments with mathematically sound, practical recommendations."
+    "You are LEDGER ZERO AI, an autonomous financial co-pilot and business agent for small businesses (中小企业智能金融助手). You analyze cash positions, sales hisab, inventory stock, invoices, and working capital in Chinese Yuan (CNY / ¥)."
   );
   const [isSavingAI, setIsSavingAI] = useState(false);
   const [aiSaveSuccess, setAiSaveSuccess] = useState(false);
@@ -113,7 +116,10 @@ export default function AdminPortalPage() {
   ]);
 
   // Detected AI Provider & Model
-  const detectedAI = detectAIProviderAndModel(aiApiKey);
+  const detectedAI = detectAIProviderAndModel(
+    aiApiKey,
+    selectedProvider !== "auto" ? selectedProvider : undefined
+  );
 
   // Check login & Load data on mount
   useEffect(() => {
@@ -129,8 +135,12 @@ export default function AdminPortalPage() {
         if (res.ok) {
           const json = await res.json();
           if (json?.settings) {
-            if (json.settings.raw_key_present || json.settings.has_key) {
-              setAiApiKey(json.settings.ai_api_key || "");
+            if (json.settings.has_key) {
+              setHasSavedKey(true);
+              setMaskedSavedKey(json.settings.ai_api_key || "");
+            }
+            if (json.settings.ai_provider) {
+              setSelectedProvider(json.settings.ai_provider);
             }
             if (json.settings.ai_agent_enabled !== undefined) {
               setAiAgentEnabled(json.settings.ai_agent_enabled === "true");
@@ -144,9 +154,9 @@ export default function AdminPortalPage() {
         console.warn("Failed fetching AI settings from API:", err);
       }
 
-      // Check localStorage fallback for key
+      // Check localStorage fallback for key (only if real unmasked key)
       const localKey = localStorage.getItem("ledger_ai_api_key");
-      if (localKey && !aiApiKey) {
+      if (localKey && localKey.length > 8 && !localKey.includes("•")) {
         setAiApiKey(localKey);
       }
 
@@ -228,17 +238,27 @@ export default function AdminPortalPage() {
     setAiSaveSuccess(false);
 
     try {
-      const res = await fetch("/api/admin/settings", {
+      const payload: any = {
+        ai_provider: selectedProvider,
+        ai_agent_enabled: aiAgentEnabled,
+        ai_system_prompt: aiSystemPrompt,
+      };
+      if (aiApiKey.trim()) {
+        payload.ai_api_key = aiApiKey.trim();
+      }
+
+      await fetch("/api/admin/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ai_api_key: aiApiKey.trim(),
-          ai_agent_enabled: aiAgentEnabled,
-          ai_system_prompt: aiSystemPrompt,
-        }),
+        body: JSON.stringify(payload),
       });
 
-      localStorage.setItem("ledger_ai_api_key", aiApiKey.trim());
+      if (aiApiKey.trim()) {
+        localStorage.setItem("ledger_ai_api_key", aiApiKey.trim());
+        setHasSavedKey(true);
+        const k = aiApiKey.trim();
+        setMaskedSavedKey(k.length > 8 ? k.slice(0, 4) + "••••••••" + k.slice(-4) : "••••••••");
+      }
       localStorage.setItem("ledger_ai_enabled", String(aiAgentEnabled));
 
       setAiSaveSuccess(true);
@@ -264,7 +284,8 @@ export default function AdminPortalPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: "Verify financial agent connection and calculate a 14-day cash buffer.",
-          apiKey: aiApiKey.trim(),
+          apiKey: aiApiKey.trim() || undefined,
+          provider: selectedProvider !== "auto" ? selectedProvider : undefined,
           businessContext: { cash: 25000, payablesDue7Days: 10000, gap: 15000, lowStockCount: 0 },
         }),
       });
@@ -563,16 +584,57 @@ export default function AdminPortalPage() {
               </div>
             )}
 
-            {/* Input & Auto-detect Badge */}
+            {/* Provider Selector & Status */}
             <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    AI Cloud Provider
+                  </label>
+                  <select
+                    value={selectedProvider}
+                    onChange={(e) => setSelectedProvider(e.target.value)}
+                    className="w-full px-3 py-2.5 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+                  >
+                    <option value="auto">Auto-Detect from API Key (Recommended)</option>
+                    <option value="groq">Groq Cloud (Llama 3.1 8B Instant - gsk_...)</option>
+                    <option value="deepseek">DeepSeek (深度求索 - deepseek-chat)</option>
+                    <option value="glm">GLM (智谱 AI - glm-4-flash)</option>
+                    <option value="qwen">Qwen (通义千问 - qwen-plus)</option>
+                    <option value="gemini">Google Gemini (AIza...)</option>
+                    <option value="openai">OpenAI (GPT-4o-mini)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    Target Model Engine
+                  </label>
+                  <div className="px-3 py-2.5 text-xs bg-slate-950/80 border border-slate-800 rounded-xl text-emerald-400 font-mono flex items-center justify-between">
+                    <span>{detectedAI.name}</span>
+                    <span className="text-[10px] text-slate-400 font-normal">({detectedAI.model})</span>
+                  </div>
+                </div>
+              </div>
+
+              {hasSavedKey && (
+                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-emerald-900/60 text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-slate-300 font-medium">Active Key Saved in System:</span>
+                    <code className="text-emerald-400 font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800">
+                      {maskedSavedKey}
+                    </code>
+                  </div>
+                  <span className="text-[11px] text-slate-400">Ready to Test</span>
+                </div>
+              )}
+
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-semibold text-slate-300">
-                    AI API Key
+                    {hasSavedKey ? "Update API Key (Leave blank to keep active key)" : "Enter API Key"}
                   </label>
-                  <span className="px-2.5 py-1 rounded-full bg-slate-950 border border-slate-700 text-[11px] font-bold text-emerald-400">
-                    {aiApiKey.trim() ? `Auto-detected: ${detectedAI.provider} (${detectedAI.model})` : "No Key Set"}
-                  </span>
                 </div>
 
                 <div className="relative">
@@ -580,7 +642,11 @@ export default function AdminPortalPage() {
                     type={showApiKey ? "text" : "password"}
                     value={aiApiKey}
                     onChange={(e) => setAiApiKey(e.target.value)}
-                    placeholder="Paste your API key here (sk-..., AIzaSy..., or gsk_...)"
+                    placeholder={
+                      hasSavedKey
+                        ? "Enter new key to replace, or click 'Test Connection' to test active key..."
+                        : "Paste your API key (e.g. gsk_... for Groq, sk-... for DeepSeek)"
+                    }
                     className="w-full px-3.5 py-3 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white font-mono placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 pr-10"
                   />
                   <button
@@ -592,7 +658,7 @@ export default function AdminPortalPage() {
                   </button>
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1.5">
-                  Supported: <strong>OpenAI</strong> (sk-...), <strong>Google Gemini</strong> (AIza...), <strong>Groq</strong> (gsk_...), or <strong>Claude</strong> (sk-ant...).
+                  Supported: <strong>Groq</strong> (starts with <code>gsk_...</code>), <strong>DeepSeek</strong> (<code>sk-...</code>), <strong>GLM</strong>, <strong>Qwen</strong>, <strong>Gemini</strong>, or <strong>OpenAI</strong>.
                 </p>
               </div>
 
