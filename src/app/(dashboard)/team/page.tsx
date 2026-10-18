@@ -15,7 +15,7 @@ import { ShieldCheck, UserPlus, Shield, Check, X, User } from "lucide-react";
 import { formatShortDate } from "@/lib/dates";
 
 export default function TeamPage() {
-  const { currentRole, switchRole, permissions } = useApp();
+  const { business, currentRole, switchRole, permissions } = useApp();
 
   const [members, setMembers] = useState<Member[]>([]);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -42,7 +42,7 @@ export default function TeamPage() {
 
     try {
       await dataService.inviteMember({
-        businessId: "biz_harbor_pine",
+        businessId: business?.id || "biz_default",
         name: inviteName,
         email: inviteEmail,
         role: inviteRole,
@@ -85,36 +85,7 @@ export default function TeamPage() {
         </Button>
       </div>
 
-      {/* Judge Quick Role Tester Callout */}
-      <Card className="p-4 bg-brand-50/60 border-brand-200">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <span className="font-bold text-forest text-xs flex items-center gap-1.5">
-              <Shield className="w-4 h-4 text-forest-action" />
-              Judge Testing Tool: Switch Active Session Role
-            </span>
-            <p className="text-[11px] text-brand-800/80 mt-0.5">
-              Click any role below to observe how action approval buttons, mutation dialogs, and invite options instantly toggle between enabled and disabled states.
-            </p>
-          </div>
 
-          <div className="flex items-center gap-1.5 bg-surfaceSubtle p-1 rounded-lg border border-slateSurface-200 shrink-0">
-            {roles.map((r) => (
-              <button
-                key={r}
-                onClick={() => switchRole(r)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-                  currentRole === r
-                    ? "bg-forest text-lime-accent shadow-xs"
-                    : "text-brand-800 hover:bg-slateSurface-100"
-                }`}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Card>
 
       {/* Team Members Table */}
       <Card>

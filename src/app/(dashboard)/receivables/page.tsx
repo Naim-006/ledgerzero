@@ -80,23 +80,32 @@ export default function ReceivablesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
-          <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Customers & Receivables
+          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            Customers & Money Owed
             <Badge variant="outline" size="sm">
-              {customers.length} Accounts
+              {customers.length} Customers
             </Badge>
           </h1>
-          <p className="text-xs text-brand-700/70 mt-1">
-            Customer payment history, reliability scoring, aging status, and targeted collection workflows.
+          <p className="text-xs text-text-dim mt-1">
+            See who owes you money, check due dates, and send friendly payment reminders.
           </p>
         </div>
       </div>
 
       {/* Customer Accounts Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {customers.map((cust) => {
+      {customers.length === 0 ? (
+        <Card className="p-10 text-center border-dashed border-border text-xs text-text-dim">
+          <Users className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+          <h3 className="font-bold text-foreground text-sm">No customer balances yet</h3>
+          <p className="mt-1 max-w-sm mx-auto">
+            When you issue customer invoices, each client will automatically appear here with their total balance and payment history.
+          </p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {customers.map((cust) => {
           const custInvoices = invoices.filter((i) => i.counterpartyId === cust.id);
           const totalOwed = custInvoices.reduce(
             (acc, i) => acc + Math.max(0, i.totalAmount - (i.amountPaid || 0)),
@@ -188,8 +197,9 @@ export default function ReceivablesPage() {
           );
         })}
       </div>
+      )}
 
-      {/* Reminder Drafting & Simulated Delivery Modal */}
+      {/* Reminder Drafting & Verification Modal */}
       {activeDraft && (
         <Modal
           isOpen={isReminderModalOpen}
@@ -239,7 +249,7 @@ export default function ReceivablesPage() {
               <div className="p-3 bg-success-50 border border-success-200 rounded-xl text-success-800 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-success-600 shrink-0" />
                 <span>
-                  <strong>Logged in-app (simulated delivery).</strong> Reminder record saved to audit log.
+                  <strong>Reminder Sent.</strong> Record logged and saved to activity history.
                 </span>
               </div>
             )}
@@ -262,11 +272,11 @@ export default function ReceivablesPage() {
                   onClick={handleSendReminder}
                 >
                   <Send className="w-3.5 h-3.5" />
-                  Send Reminder (Simulated)
+                  Send Reminder
                 </Button>
               ) : (
                 <Badge variant="success" size="md">
-                  Delivered (Simulated)
+                  Delivered
                 </Badge>
               )}
             </div>

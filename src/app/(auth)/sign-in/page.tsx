@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, AlertCircle, ArrowRight } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabase/client";
+import { mockStore } from "@/services/mock/store";
 
 function SignInContent() {
   const router = useRouter();
@@ -26,7 +27,7 @@ function SignInContent() {
 
     try {
       const supabase = getSupabaseClient();
-      const { error: authError } = await supabase.auth.signInWithPassword({
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
@@ -38,6 +39,22 @@ function SignInContent() {
             : authError.message
         );
         return;
+      }
+
+      if (data?.user) {
+        const u = {
+          id: data.user.id,
+          email: data.user.email || email.trim(),
+          name: data.user.user_metadata?.full_name || email.trim().split("@")[0] || "User",
+        };
+        const currentState = mockStore.getState();
+        if (
+          currentState.business.name.includes("Harbor & Pine") ||
+          currentState.currentMemberId !== u.id ||
+          currentState.business.openingCashBalance === 1500000
+        ) {
+          mockStore.initializeFreshUserWorkspace(u);
+        }
       }
 
       router.push(redirectTo);
@@ -111,11 +128,29 @@ function SignInContent() {
           <span className="font-bold text-forest text-lg">LEDGER ZERO</span>
         </div>
 
-        <div className="w-full max-w-sm space-y-6">
+        <div className="w-full max-w-sm space-y-5">
           <div>
-            <h1 className="text-2xl font-bold text-brand-900 tracking-tight">Sign in to your account</h1>
-            <p className="text-sm text-brand-700/60 mt-1">Enter your details to access your financial workspace</p>
+            <h1 className="text-2xl font-bold text-brand-900 tracking-tight">Welcome back</h1>
+            <p className="text-xs text-brand-700/60 mt-1">
+              Sign in to manage your money, invoices, and shop finances.
+            </p>
           </div>
+
+          {/* Quick-Fill Demo Login for Judges & Testing */}
+          <button
+            type="button"
+            onClick={() => {
+              setEmail("hnayeem005@gmail.com");
+              setPassword("123456");
+            }}
+            className="w-full py-2.5 px-3 rounded-xl border border-dashed border-emerald-500/40 bg-emerald-500/5 hover:bg-emerald-500/10 text-xs text-emerald-800 dark:text-emerald-300 flex items-center justify-between transition-colors font-medium group"
+          >
+            <div className="text-left">
+              <span className="block font-semibold text-emerald-900 dark:text-emerald-200">Test Account Quick Fill</span>
+              <span className="text-[11px] text-emerald-700/70 dark:text-emerald-400/70">hnayeem005@gmail.com</span>
+            </div>
+            <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 group-hover:underline">Click to Fill &rarr;</span>
+          </button>
 
           {/* Error notification */}
           {error && (

@@ -22,19 +22,16 @@ import { CurrencyAmount } from "@/components/finance/currency-amount";
 import {
   Receipt,
   Plus,
-  Upload,
   Search,
   Filter,
   CheckCircle2,
   Trash2,
-  FileSpreadsheet,
 } from "lucide-react";
 import { formatShortDate } from "@/lib/dates";
 import { parseDecimalToMinorUnits, minorUnitsToDecimalString } from "@/lib/money";
-import Papa from "papaparse";
 
 export default function TransactionsPage() {
-  const { activeCurrency, permissions } = useApp();
+  const { business, activeCurrency, permissions } = useApp();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -51,10 +48,7 @@ export default function TransactionsPage() {
   const [amountStr, setAmountStr] = useState("");
   const [counterpartyName, setCounterpartyName] = useState("");
 
-  // CSV Import Modal & State
-  const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
-  const [csvPreviewRows, setCsvPreviewRows] = useState<any[]>([]);
-  const [csvResult, setCsvResult] = useState<{ imported: number; duplicates: number } | null>(null);
+
 
   const loadTransactions = React.useCallback(async () => {
     try {
@@ -82,7 +76,7 @@ export default function TransactionsPage() {
 
     try {
       await dataService.createTransaction({
-        businessId: "biz_harbor_pine",
+        businessId: business?.id || "biz_default",
         date,
         description,
         type,
@@ -112,51 +106,7 @@ export default function TransactionsPage() {
     }
   };
 
-  const handleCsvFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        setCsvPreviewRows(results.data);
-      },
-    });
-  };
-
-  const handleCommitCsv = async () => {
-    if (csvPreviewRows.length === 0) return;
-
-    const parsedTxs: Omit<Transaction, "id" | "createdAt">[] = csvPreviewRows.map(
-      (row) => {
-        const rowAmount = row.amount || row.Amount || row.Total || "0";
-        const minor = parseDecimalToMinorUnits(rowAmount.toString(), activeCurrency);
-        const rowType: TransactionType =
-          row.type?.toLowerCase() === "expense" ? "expense" : "income";
-
-        return {
-          businessId: "biz_harbor_pine",
-          date: row.date || row.Date || "2026-10-18",
-          description: row.description || row.Description || "Imported transaction",
-          type: rowType,
-          category: (row.category as TransactionCategory) || "other",
-          amount: Math.abs(minor),
-          currency: activeCurrency,
-          counterpartyName: row.counterparty || row.Counterparty || undefined,
-          isSettled: true,
-        };
-      }
-    );
-
-    try {
-      const res = await dataService.importTransactionsCsv(parsedTxs);
-      setCsvResult({ imported: res.importedCount, duplicates: res.duplicateCount });
-      await loadTransactions();
-    } catch (err) {
-      console.error("CSV import commit failed:", err);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -170,24 +120,11 @@ export default function TransactionsPage() {
             </Badge>
           </h1>
           <p className="text-xs text-brand-700/70 mt-1">
-            Confirmed financial records driving the deterministic liquidity calculations.
+            All sales, customer payments, supplier bills, and cash movements recorded for your shop.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setCsvPreviewRows([]);
-              setCsvResult(null);
-              setIsCsvModalOpen(true);
-            }}
-          >
-            <Upload className="w-3.5 h-3.5" />
-            Import CSV
-          </Button>
-
           <Button
             variant="primary"
             size="sm"
@@ -260,8 +197,8 @@ export default function TransactionsPage() {
           <TableBody>
             {transactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-brand-700/60">
-                  No transactions match the selected filters.
+                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground text-xs">
+                  No transactions recorded yet. Click &quot;+ Add Transaction&quot; or &quot;Import Bank CSV&quot; to begin.
                 </TableCell>
               </TableRow>
             ) : (
@@ -389,108 +326,6 @@ export default function TransactionsPage() {
             </Button>
           </div>
         </form>
-      </Modal>
-
-      {/* CSV Import Modal */}
-      <Modal
-        isOpen={isCsvModalOpen}
-        onClose={() => setIsCsvModalOpen(false)}
-        title="Import Transactions via CSV"
-        description="Upload a CSV export from your bank or ERP with automatic duplicate detection"
-        maxWidth="2xl"
-      >
-        <div className="space-y-4 text-xs">
-          {!csvResult && (
-            <div className="p-6 border-2 border-dashed border-slateSurface-300 rounded-xl text-center space-y-2">
-              <FileSpreadsheet className="w-8 h-8 text-forest-action mx-auto" />
-              <div>
-                <p className="font-semibold text-brand-900">Choose CSV File to Upload</p>
-                <p className="text-[11px] text-brand-700/60 mt-0.5">
-                  Expected columns: Date, Description, Amount, Type (income/expense), Category
-                </p>
-              </div>
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleCsvFileUpload}
-                className="block mx-auto text-xs text-brand-700 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slateSurface-100 file:text-forest hover:file:bg-slateSurface-200 cursor-pointer"
-              />
-            </div>
-          )}
-
-          {csvPreviewRows.length > 0 && !csvResult && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-brand-900">
-                  Preview ({csvPreviewRows.length} rows parsed)
-                </span>
-                <span className="text-[11px] text-brand-700/60">
-                  Checking for duplicate records against existing ledger...
-                </span>
-              </div>
-              <div className="max-h-48 overflow-y-auto border border-slateSurface-200 rounded-lg">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Type</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {csvPreviewRows.slice(0, 5).map((row, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell>{row.date || row.Date || "2026-10-18"}</TableCell>
-                        <TableCell>{row.description || row.Description || "—"}</TableCell>
-                        <TableCell className="font-mono">{row.amount || row.Amount || "0"}</TableCell>
-                        <TableCell>{row.type || row.Type || "income"}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          )}
-
-          {csvResult && (
-            <div className="p-4 bg-success-50 border border-success-200 rounded-xl space-y-2">
-              <div className="flex items-center gap-2 font-bold text-success-800">
-                <CheckCircle2 className="w-5 h-5 text-success-600" />
-                CSV Import Completed
-              </div>
-              <p className="text-success-900/80 leading-relaxed">
-                Successfully committed <strong>{csvResult.imported}</strong> new transactions into the ledger.
-                {csvResult.duplicates > 0 && (
-                  <span>
-                    {" "}<strong>{csvResult.duplicates}</strong> duplicate records were identified and ignored.
-                  </span>
-                )}
-              </p>
-            </div>
-          )}
-
-          <div className="pt-4 border-t border-slateSurface-100 flex items-center justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsCsvModalOpen(false)}
-            >
-              Close
-            </Button>
-            {csvPreviewRows.length > 0 && !csvResult && (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={handleCommitCsv}
-                disabled={!permissions.canMutateFinancialRecords}
-              >
-                Commit {csvPreviewRows.length} Rows to Ledger
-              </Button>
-            )}
-          </div>
-        </div>
       </Modal>
     </div>
   );

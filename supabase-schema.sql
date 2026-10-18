@@ -156,6 +156,27 @@ create table if not exists public.invoice_items (
 );
 
 -- ==============================================================================
+-- 9b. Products & Stock Inventory Table (For POS & Hisab)
+-- ==============================================================================
+create table if not exists public.products (
+  id uuid primary key default gen_random_uuid(),
+  business_id uuid not null references public.businesses(id) on delete cascade,
+  name text not null,
+  sku text not null,
+  category text not null default 'General',
+  unit_price_cents bigint not null default 0,
+  cost_price_cents bigint not null default 0,
+  stock_quantity integer not null default 0,
+  min_stock_alert integer not null default 5,
+  barcode text,
+  unit text not null default 'pcs',
+  notes text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique (business_id, sku)
+);
+
+-- ==============================================================================
 -- 10. Transactions Table (Cash Inflows, Expenses, Settlements)
 -- ==============================================================================
 create table if not exists public.transactions (
@@ -281,6 +302,7 @@ alter table public.customers enable row level security;
 alter table public.suppliers enable row level security;
 alter table public.invoices enable row level security;
 alter table public.invoice_items enable row level security;
+alter table public.products enable row level security;
 alter table public.transactions enable row level security;
 alter table public.budgets enable row level security;
 alter table public.action_tasks enable row level security;
@@ -295,6 +317,7 @@ drop policy if exists "Customers access policy" on public.customers;
 drop policy if exists "Suppliers access policy" on public.suppliers;
 drop policy if exists "Invoices access policy" on public.invoices;
 drop policy if exists "Invoice items access policy" on public.invoice_items;
+drop policy if exists "Products access policy" on public.products;
 drop policy if exists "Transactions access policy" on public.transactions;
 drop policy if exists "Budgets access policy" on public.budgets;
 drop policy if exists "Action tasks access policy" on public.action_tasks;
@@ -347,6 +370,12 @@ create policy "Invoice items access policy" on public.invoice_items
       where invoices.id = invoice_items.invoice_id
       and public.has_business_access(invoices.business_id)
     )
+  );
+
+-- 7b. Products Policy
+create policy "Products access policy" on public.products
+  for all using (
+    public.has_business_access(business_id)
   );
 
 -- 8. Transactions Policy
@@ -423,13 +452,7 @@ begin
   values (new_biz_id, new.id, 'owner')
   on conflict do nothing;
 
-  -- 4. Initial Seed Ledger Transactions (ensures clean positive cash balance)
-  insert into public.transactions (business_id, date, amount_cents, type, category, description, status)
-  values
-    (new_biz_id, current_date - interval '1 day', 450000, 'credit', 'Revenue', 'Initial Customer Payment Settled', 'settled'),
-    (new_biz_id, current_date - interval '3 days', 1550000, 'credit', 'Revenue', 'Opening Working Capital Ledger', 'settled');
-
-  -- 5. Log Audit Event
+  -- 4. Log Clean Workspace Creation (Zero transactions, 100% fresh blank ledger)
   insert into public.audit_logs (business_id, user_id, actor_name, actor_type, action, entity_type, entity_id, details)
   values (
     new_biz_id,
@@ -439,7 +462,7 @@ begin
     'WORKSPACE_CREATED',
     'business',
     new_biz_id::text,
-    'Initial business workspace and ledger provisioned upon registration.'
+    'Fresh business workspace created. Blank ledger ready.'
   );
 
   return new;

@@ -1,26 +1,43 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { detectAIProviderAndModel, cachedAISettings } from "@/lib/ai/config";
 
-// Server-side in-memory store fallback for system settings
-let serverSettings: Record<string, string> = {
-  ai_provider: "openai",
-  ai_model: "gpt-4o-mini",
-  ai_api_key: process.env.OPENAI_API_KEY || "",
-  ai_agent_enabled: "true",
-  ai_system_prompt:
-    "You are LEDGER ZERO AI, an autonomous financial co-pilot for small businesses. You analyze cash positions, overdue invoices, and impending vendor payments. You always provide mathematically sound, cautious, and practical recommendations.",
-};
+function getSupabaseServerClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
 export async function GET() {
-  // Mask API key for security
-  const maskedKey = serverSettings.ai_api_key
-    ? serverSettings.ai_api_key.slice(0, 4) + "••••••••" + serverSettings.ai_api_key.slice(-4)
+  try {
+    const sb = getSupabaseServerClient();
+    if (sb) {
+      const { data, error } = await sb.from("system_settings").select("key, value");
+      if (!error && data && data.length > 0) {
+        for (const row of data) {
+          if (row.key && row.value) {
+            cachedAISettings[row.key] = row.value;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Failed reading system settings from Supabase:", err);
+  }
+
+  const rawKey = cachedAISettings.ai_api_key || "";
+  const maskedKey = rawKey
+    ? rawKey.length > 8
+      ? rawKey.slice(0, 4) + "••••••••" + rawKey.slice(-4)
+      : "••••••••"
     : "";
 
   return NextResponse.json({
     settings: {
-      ...serverSettings,
+      ...cachedAISettings,
       ai_api_key: maskedKey,
-      has_key: Boolean(serverSettings.ai_api_key),
+      raw_key_present: Boolean(rawKey),
     },
   });
 }
@@ -29,24 +46,44 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    if (body.ai_provider) serverSettings.ai_provider = body.ai_provider;
-    if (body.ai_model) serverSettings.ai_model = body.ai_model;
-    if (body.ai_api_key !== undefined && body.ai_api_key !== "") {
-      serverSettings.ai_api_key = body.ai_api_key.trim();
+    const rawApiKey = body.ai_api_key !== undefined ? String(body.ai_api_key).trim() : undefined;
+    if (rawApiKey !== undefined) {
+      cachedAISettings.ai_api_key = rawApiKey;
+      const detected = detectAIProviderAndModel(rawApiKey);
+      cachedAISettings.ai_provider = detected.provider;
+      cachedAISettings.ai_model = detected.model;
     }
+
     if (body.ai_agent_enabled !== undefined) {
-      serverSettings.ai_agent_enabled = String(body.ai_agent_enabled);
+      cachedAISettings.ai_agent_enabled = String(body.ai_agent_enabled);
     }
     if (body.ai_system_prompt) {
-      serverSettings.ai_system_prompt = body.ai_system_prompt;
+      cachedAISettings.ai_system_prompt = body.ai_system_prompt;
+    }
+
+    // Persist to Supabase system_settings table
+    try {
+      const sb = getSupabaseServerClient();
+      if (sb) {
+        const rowsToUpsert = [
+          { key: "ai_api_key", value: cachedAISettings.ai_api_key, is_secret: true },
+          { key: "ai_provider", value: cachedAISettings.ai_provider },
+          { key: "ai_model", value: cachedAISettings.ai_model },
+          { key: "ai_agent_enabled", value: cachedAISettings.ai_agent_enabled },
+          { key: "ai_system_prompt", value: cachedAISettings.ai_system_prompt },
+        ];
+        await sb.from("system_settings").upsert(rowsToUpsert, { onConflict: "key" });
+      }
+    } catch (dbErr) {
+      console.warn("Could not persist to Supabase system_settings, cached in memory:", dbErr);
     }
 
     return NextResponse.json({
       success: true,
       message: "AI settings saved successfully.",
-      has_key: Boolean(serverSettings.ai_api_key),
-      provider: serverSettings.ai_provider,
-      model: serverSettings.ai_model,
+      provider: cachedAISettings.ai_provider,
+      model: cachedAISettings.ai_model,
+      has_key: Boolean(cachedAISettings.ai_api_key),
     });
   } catch (error) {
     return NextResponse.json(

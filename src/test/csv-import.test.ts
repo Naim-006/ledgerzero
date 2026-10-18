@@ -9,9 +9,23 @@ describe("CSV Import & Duplicate Detection", () => {
   });
 
   it("imports new transactions and ignores exact duplicates", async () => {
+    // Add an existing transaction
+    mockStore.addTransaction({
+      id: "tx-existing-1",
+      businessId: "biz-test",
+      date: "2026-10-05",
+      description: "Warehouse Facility Lease - October 2026",
+      type: "expense",
+      category: "operating_rent",
+      amount: 350000,
+      currency: "USD",
+      isSettled: true,
+      createdAt: "2026-10-05T00:00:00Z",
+    });
+
     const newTxBatch: Omit<Transaction, "id" | "createdAt">[] = [
       {
-        businessId: "biz_harbor_pine",
+        businessId: "biz-test",
         date: "2026-10-15",
         description: "New Hardware Purchase",
         type: "expense",
@@ -20,9 +34,9 @@ describe("CSV Import & Duplicate Detection", () => {
         currency: "USD",
         isSettled: true,
       },
-      // Duplicate of initial seed: "Warehouse Facility Lease - October 2026" on 2026-10-05 for $3500 (350000 cents)
+      // Duplicate of existing transaction
       {
-        businessId: "biz_harbor_pine",
+        businessId: "biz-test",
         date: "2026-10-05",
         description: "Warehouse Facility Lease - October 2026",
         type: "expense",

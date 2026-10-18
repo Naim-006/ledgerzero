@@ -1,12 +1,12 @@
 import { getCurrencyDecimals } from "@/domain/countries";
 
 /**
- * Format integer minor units (e.g., 2000000 cents) into a localized currency string ($20,000.00)
+ * Format integer minor units (e.g., 2000000 cents/fen) into a localized currency string (¥20,000.00)
  */
 export function formatMinorUnits(
   minorUnits: number,
-  currency: string = "USD",
-  locale: string = "en-US",
+  currency: string = "CNY",
+  locale: string = "zh-CN",
   options?: { showPlusSign?: boolean; hideDecimalsIfZero?: boolean }
 ): string {
   const decimals = getCurrencyDecimals(currency);
@@ -26,7 +26,7 @@ export function formatMinorUnits(
     // Fallback if locale or currency code is unsupported in environment
     const sign = minorUnits < 0 ? "-" : options?.showPlusSign ? "+" : "";
     const absValue = (Math.abs(minorUnits) / factor).toFixed(decimals);
-    return `${sign}${currency.toUpperCase()} ${absValue}`;
+    return `${sign}${currency.toUpperCase() === "CNY" ? "¥" : currency.toUpperCase()} ${absValue}`;
   }
 }
 

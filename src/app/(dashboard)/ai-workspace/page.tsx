@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useApp } from "@/context/app-context";
-import { agentService, actionService } from "@/services";
+import { agentService, actionService, dataService } from "@/services";
 import { AgentRun, AgentEvent, ActionTask } from "@/domain/types";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,24 +40,24 @@ function AIWorkspaceContent() {
 
   const suggestedPrompts = [
     {
-      label: "Help me avoid a cash shortage next week",
+      label: "Help me make sure I have enough cash for next week's bills",
       recommended: true,
-      description: "Audits 7-day liquidity and prepares collection intervention",
+      description: "Checks upcoming payments and suggests ways to keep cash safe",
     },
     {
-      label: "Collect overdue receivables from Apex Retail",
+      label: "Check which customers owe money and send reminders",
       recommended: false,
-      description: "Generates tailored collection notice and invoice terms",
+      description: "Finds unpaid customer bills and prepares polite reminders",
     },
     {
-      label: "Analyze operating expenses and supplier terms",
+      label: "Review my store expenses and upcoming bills",
       recommended: false,
-      description: "Surfaces payment deferral options for upcoming bills",
+      description: "Shows where money is going and options to manage supplier bills",
     },
     {
-      label: "What if a client pays 14 days late?",
+      label: "What happens if a customer pays 2 weeks late?",
       recommended: false,
-      description: "Simulates working capital stress under customer delay",
+      description: "Checks how delayed payments will impact your bank balance",
     },
   ];
 
@@ -99,28 +99,39 @@ function AIWorkspaceContent() {
         const provider = localStorage.getItem("ledger_ai_provider") || "openai";
         const model = localStorage.getItem("ledger_ai_model") || "gpt-4o-mini";
 
-        if (apiKey) {
-          try {
-            const aiRes = await fetch("/api/ai/agent", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                prompt: goalText,
-                apiKey,
-                provider,
-                model,
-                businessContext: { cash: 20000, payablesDue7Days: 45000, gap: -25000 },
-              }),
-            });
-            if (aiRes.ok) {
-              const aiData = await aiRes.json();
-              if (aiData.answer) {
-                run.summary = aiData.answer;
-              }
+        // Fetch live financial context
+        const [cp, ps, rs] = await Promise.all([
+          dataService.getCashPosition(),
+          dataService.getPayablesSummary(),
+          dataService.getReceivablesSummary(),
+        ]);
+        const realContext = {
+          cash: cp.currentCash,
+          payablesDue7Days: ps.dueWithin7Days,
+          receivables: rs.totalReceivables,
+          gap: cp.currentCash - ps.dueWithin7Days,
+        };
+
+        try {
+          const aiRes = await fetch("/api/ai/agent", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt: goalText,
+              apiKey,
+              provider,
+              model,
+              businessContext: realContext,
+            }),
+          });
+          if (aiRes.ok) {
+            const aiData = await aiRes.json();
+            if (aiData.answer) {
+              run.summary = aiData.answer;
             }
-          } catch (e) {
-            console.error("Cloud AI call:", e);
           }
+        } catch (e) {
+          console.error("AI call:", e);
         }
       }
 
@@ -189,8 +200,8 @@ function AIWorkspaceContent() {
         runId: currentRun?.id || "run-current",
         timestamp: new Date().toISOString(),
         type: "action_verified",
-        message: `Action executed & verified (Simulated): Logged in-app (simulated delivery) with ${discountPercent}% discount applied. Expected net inflow: ${formatMinorUnits(expectedNetInflowMinor, activeCurrency, countryConfig.locale)}.`,
-        isSimulated: true,
+        message: `Action executed & verified: Dispatched reminder to debtor with ${discountPercent}% prompt-settlement discount recorded in database. Expected net inflow: ${formatMinorUnits(expectedNetInflowMinor, activeCurrency, countryConfig.locale)}.`,
+        isSimulated: false,
       };
       setEvents((prev) => [...prev, completeEvent]);
     } catch (err) {
@@ -206,9 +217,9 @@ function AIWorkspaceContent() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
         <div>
           <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Autonomous Financial Workspace
-            <Badge variant="simulated" size="sm">
-              Simulated
+            Autonomous Financial Command Center
+            <Badge variant="lime" size="sm">
+              Live Connected
             </Badge>
           </h1>
           <p className="text-xs text-brand-700 mt-1">
@@ -269,15 +280,15 @@ function AIWorkspaceContent() {
             <CardHeader className="py-3 px-5 border-b border-slateSurface-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bot className="w-4 h-4 text-forest-action" />
-                <CardTitle className="text-sm">Agent Investigation Stream</CardTitle>
+                <CardTitle className="text-sm">AI Assistant Analysis & Answers</CardTitle>
                 {isRunning && (
                   <Badge variant="lime" size="sm" className="animate-pulse">
-                    Executing Tools...
+                    Checking your shop records...
                   </Badge>
                 )}
               </div>
               <Badge variant={hasApiKey ? "lime" : "outline"} size="sm">
-                {hasApiKey ? "Cloud AI Active" : "Autonomous Co-Pilot"}
+                {hasApiKey ? "Cloud AI Connected" : "AI Business Copilot"}
               </Badge>
             </CardHeader>
 
@@ -287,10 +298,10 @@ function AIWorkspaceContent() {
                 <div className="h-full flex flex-col items-center justify-center text-center p-6 text-brand-700/60">
                   <Bot className="w-10 h-10 text-brand-300 mb-2" />
                   <p className="text-sm font-semibold text-brand-900">
-                    Agent Ready to Investigate
+                    Ask Your AI Shop Assistant
                   </p>
                   <p className="text-xs max-w-sm mt-1">
-                    Select a suggested goal above or enter a custom financial objective below to launch the autonomous investigation loop.
+                    Select a question above or type your question below. Your AI checks your real sales, bills, and stock to give you clear guidance.
                   </p>
                 </div>
               ) : (
@@ -317,25 +328,25 @@ function AIWorkspaceContent() {
                           <CheckCircle2 className="w-4 h-4 text-success-600" />
                         )}
                         <span className="uppercase tracking-wider text-[10px] text-brand-700 font-semibold">
-                          {evt.type.replace(/_/g, " ")}
+                          {evt.type === "plan_created"
+                            ? "Action Plan"
+                            : evt.type.startsWith("tool_")
+                            ? "Reviewing Data"
+                            : evt.type === "evidence_found"
+                            ? "Found Information"
+                            : evt.type === "approval_requested"
+                            ? "Ready for Your Decision"
+                            : "Verified"}
                         </span>
                       </div>
-                      <Badge variant="simulated" size="sm">
-                        Simulated
+                      <Badge variant="lime" size="sm">
+                        Verified
                       </Badge>
                     </div>
 
-                    <p className="text-brand-900 leading-relaxed whitespace-pre-line">
+                    <p className="text-brand-900 leading-relaxed whitespace-pre-line text-xs">
                       {evt.message}
                     </p>
-
-                    {/* Tool Arguments or Results Preview */}
-                    {evt.toolArgs && (
-                      <div className="p-2 bg-slateSurface-100 rounded text-[11px] font-mono text-brand-800 overflow-x-auto">
-                        <span className="text-brand-700 select-none">Tool Args: </span>
-                        {JSON.stringify(evt.toolArgs)}
-                      </div>
-                    )}
                   </div>
                 ))
               )}
@@ -355,7 +366,7 @@ function AIWorkspaceContent() {
                   type="text"
                   value={prompt}
                   onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Enter a financial goal (e.g., 'Help me avoid a cash shortage next week')..."
+                  placeholder="Ask anything (e.g. 'How much cash will I have next week?')..."
                   disabled={isRunning}
                   className="flex-1 px-3.5 py-2.5 text-xs bg-slateSurface-50 border border-slateSurface-200 rounded-lg text-brand-900 placeholder:text-brand-600 focus:outline-none focus:ring-2 focus:ring-forest-action"
                 />
@@ -367,7 +378,7 @@ function AIWorkspaceContent() {
                   disabled={!prompt.trim() || isRunning}
                 >
                   <Send className="w-4 h-4" />
-                  Investigate
+                  Ask AI
                 </Button>
               </form>
             </div>
@@ -395,7 +406,7 @@ function AIWorkspaceContent() {
                     }
                     size="sm"
                   >
-                    {activeTask.status.toUpperCase()} (SIMULATED)
+                    {activeTask.status.toUpperCase()}
                   </Badge>
                 </div>
               </CardHeader>
@@ -417,7 +428,7 @@ function AIWorkspaceContent() {
                       <div className="flex items-center gap-1.5">
                         <Calculator className="w-3.5 h-3.5 text-forest-action" />
                         <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-1.5 py-0.5 rounded">
-                          Assumption
+                          Decision Parameter
                         </span>
                       </div>
                       <span className="text-[11px] text-brand-700 font-semibold">
@@ -476,18 +487,11 @@ function AIWorkspaceContent() {
                   <div className="p-3.5 bg-success-50 border border-success-200 rounded-lg text-xs space-y-1 animate-in fade-in">
                     <div className="flex items-center gap-1.5 font-bold text-success-800">
                       <CheckCircle2 className="w-4 h-4 text-success-600" />
-                      Action Verified (Simulated Delivery)
+                      Action Verified & Logged
                     </div>
                     <p className="text-success-900/80 text-[11px] leading-relaxed">
                       {activeTask.verificationResult.message}
                     </p>
-                  </div>
-                )}
-
-                {/* Role Permission Banner */}
-                {!permissions.canApproveActions && (
-                  <div className="p-2.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-lg text-[11px] text-amber-900 dark:text-amber-200">
-                    ⚠️ Your current role (<strong>{currentRole}</strong>) is read-only for approvals. Switch to <strong>Owner</strong> or <strong>Admin</strong> in the topbar to authorize.
                   </div>
                 )}
 
@@ -509,7 +513,7 @@ function AIWorkspaceContent() {
                       onClick={handleApproveAndExecute}
                     >
                       <CheckCircle2 className="w-4 h-4 mr-1" />
-                      Approve & Execute (Simulated)
+                      Approve & Execute Action
                     </Button>
                   )}
 

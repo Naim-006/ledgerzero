@@ -3,6 +3,7 @@
 import React from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { FloatingCopilot } from "@/components/ai/floating-copilot";
 
 export default function DashboardLayout({
   children,
@@ -27,6 +28,9 @@ export default function DashboardLayout({
           </main>
         </div>
       </div>
+
+      {/* Floating Conversational & Agentic AI Assistant */}
+      <FloatingCopilot />
     </div>
   );
 }

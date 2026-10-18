@@ -3,7 +3,7 @@ export interface CountryConfig {
   name: string;
   defaultCurrency: string; // ISO 4217
   currencySymbol: string;
-  minorUnitDecimals: number; // 2 for USD/EUR/BDT, 0 for JPY, 3 for KWD
+  minorUnitDecimals: number; // 2 for CNY/USD/EUR/BDT, 0 for JPY, 3 for KWD
   locale: string;
   timeZone: string;
   weekStartDay: 0 | 1; // 0 for Sunday, 1 for Monday
@@ -15,6 +15,21 @@ export interface CountryConfig {
 }
 
 export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
+  CN: {
+    code: "CN",
+    name: "China (中国)",
+    defaultCurrency: "CNY",
+    currencySymbol: "¥",
+    minorUnitDecimals: 2,
+    locale: "zh-CN",
+    timeZone: "Asia/Shanghai",
+    weekStartDay: 1,
+    fiscalYearStartMonth: 1,
+    taxLabel: "增值税 (VAT)",
+    defaultTaxRatePercent: 13.0,
+    commonPaymentTermsDays: [15, 30, 60],
+    commonPaymentMethods: ["WeChat Pay (微信支付)", "Alipay (支付宝)", "UnionPay (银联)", "Bank Wire (银行转账)"],
+  },
   US: {
     code: "US",
     name: "United States",
@@ -90,36 +105,6 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
     commonPaymentTermsDays: [15, 30, 45],
     commonPaymentMethods: ["PayNow", "FAST", "GIRO", "Wire Transfer"],
   },
-  NG: {
-    code: "NG",
-    name: "Nigeria",
-    defaultCurrency: "NGN",
-    currencySymbol: "₦",
-    minorUnitDecimals: 2,
-    locale: "en-NG",
-    timeZone: "Africa/Lagos",
-    weekStartDay: 1,
-    fiscalYearStartMonth: 1,
-    taxLabel: "VAT",
-    defaultTaxRatePercent: 7.5,
-    commonPaymentTermsDays: [14, 30, 60],
-    commonPaymentMethods: ["NIBSS Instant Payment", "Bank Transfer", "Card"],
-  },
-  BR: {
-    code: "BR",
-    name: "Brazil",
-    defaultCurrency: "BRL",
-    currencySymbol: "R$",
-    minorUnitDecimals: 2,
-    locale: "pt-BR",
-    timeZone: "America/Sao_Paulo",
-    weekStartDay: 0,
-    fiscalYearStartMonth: 1,
-    taxLabel: "Impostos",
-    defaultTaxRatePercent: 12.0,
-    commonPaymentTermsDays: [15, 28, 30],
-    commonPaymentMethods: ["PIX", "Boleto Bancário", "TED", "Cartão"],
-  },
   BD: {
     code: "BD",
     name: "Bangladesh",
@@ -137,7 +122,7 @@ export const COUNTRY_CONFIGS: Record<string, CountryConfig> = {
   },
 };
 
-export const DEFAULT_COUNTRY = COUNTRY_CONFIGS.US;
+export const DEFAULT_COUNTRY = COUNTRY_CONFIGS.CN;
 
 export function getCountryConfig(countryCode: string): CountryConfig {
   return COUNTRY_CONFIGS[countryCode.toUpperCase()] || DEFAULT_COUNTRY;

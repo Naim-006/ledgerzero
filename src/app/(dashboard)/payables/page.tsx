@@ -44,54 +44,32 @@ export default function PayablesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
-          <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Suppliers & Payables
+          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            Suppliers & Bills to Pay
             <Badge variant="outline" size="sm">
               {suppliers.length} Vendors
             </Badge>
           </h1>
-          <p className="text-xs text-brand-700/70 mt-1">
-            Accounts payable management, vendor criticality ratings, and AI cash preservation schedules.
+          <p className="text-xs text-text-dim mt-1">
+            Manage your vendor bills, track payment due dates, and schedule payouts to protect cash flow.
           </p>
         </div>
       </div>
 
-      {/* AI Schedule Suggestion Strip */}
-      <Card className="bg-brand-50/60 border-brand-200 p-4">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-brand-100 rounded-lg text-forest-action shrink-0">
-              <Sparkles className="w-5 h-5 text-forest" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="text-sm font-bold text-forest">
-                  AI Payment Scheduling Optimization Suggestion
-                </h4>
-                <Badge variant="simulated" size="sm">
-                  Simulated
-                </Badge>
-              </div>
-              <p className="text-xs text-brand-800/80 mt-1 leading-relaxed max-w-3xl">
-                Pay <strong>Cascade Lumber & Millworks</strong> ($25,000) on time (Oct 21) as they are a critical fulfillment vendor. Defer <strong>Northwest Freight Solutions</strong> ($20,000) by 7 days to preserve working capital through the liquidity dip.
-              </p>
-            </div>
-          </div>
-
-          <Link href="/cash-flow">
-            <Button variant="primary" size="sm" className="shrink-0">
-              Test in Simulator
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          </Link>
-        </div>
-      </Card>
-
       {/* Supplier Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {suppliers.map((supp) => {
+      {suppliers.length === 0 ? (
+        <Card className="p-10 text-center border-dashed border-border text-xs text-text-dim">
+          <Building2 className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+          <h3 className="font-bold text-foreground text-sm">No supplier bills yet</h3>
+          <p className="mt-1 max-w-sm mx-auto">
+            When you enter bills or invoices from your suppliers, their due dates and payment schedules will appear here.
+          </p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {suppliers.map((supp) => {
           const suppInvoices = invoices.filter((i) => i.counterpartyId === supp.id);
           const totalPayable = suppInvoices.reduce(
             (acc, i) => acc + Math.max(0, i.totalAmount - (i.amountPaid || 0)),
@@ -167,6 +145,7 @@ export default function PayablesPage() {
           );
         })}
       </div>
+      )}
     </div>
   );
 }

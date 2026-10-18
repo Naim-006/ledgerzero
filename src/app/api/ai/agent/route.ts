@@ -1,31 +1,69 @@
 import { NextResponse } from "next/server";
+import { detectAIProviderAndModel, getEffectiveServerApiKey } from "@/lib/ai/config";
 
 export async function POST(req: Request) {
   try {
-    const { prompt, businessContext, apiKey, provider, model } = await req.json();
+    const { prompt, businessContext, apiKey: explicitKey, provider: explicitProvider } = await req.json();
 
-    const effectiveApiKey = apiKey || process.env.OPENAI_API_KEY || "";
-    const effectiveProvider = provider || "openai";
-    const effectiveModel = model || "gpt-4o-mini";
+    const effectiveApiKey = await getEffectiveServerApiKey(explicitKey);
 
-    // If an OpenAI API Key is provided, call real OpenAI API
-    if (effectiveApiKey && (effectiveProvider === "openai" || effectiveApiKey.startsWith("sk-"))) {
+    // If NO API key is connected, explicitly inform the user (no fake preset responses)
+    if (!effectiveApiKey) {
+      return NextResponse.json({
+        connected: false,
+        source: "disconnected",
+        answer: `⚠️ **AI API is not connected.**
+
+To enable live AI analysis and autonomous task execution for your business, please connect your **DeepSeek (深度求索)**, **GLM (智谱 AI)**, **Qwen (通义千问)**, **OpenAI**, or **Gemini** API key in the **Admin Portal** (/admin) or paste it directly below.`,
+        suggestedActions: [
+          "Connect DeepSeek / AI Key",
+          "Open POS Sell Register",
+          "Check Cash Flow Forecast",
+        ],
+      });
+    }
+
+    const detected = detectAIProviderAndModel(effectiveApiKey, explicitProvider);
+    const provider = detected.provider;
+    const model = detected.model;
+
+    const cash = Number(businessContext?.cash || 0);
+    const payables = Number(businessContext?.payablesDue7Days || 0);
+    const receivables = Number(businessContext?.receivables || 0);
+    const lowStockCount = Number(businessContext?.lowStockCount || 0);
+    const netGap = cash - payables;
+
+    const systemPrompt = `You are LEDGER ZERO AI, an autonomous financial co-pilot and agent for small businesses (中小企业智能金融助手).
+Primary Currency: Chinese Yuan (CNY / ¥).
+Competition context: Tsinghua PBCSF & WeBank International Track (Topic E: SME Finance Copilot).
+Live Business Status:
+- Cash in Hand & Bank: ¥${(cash / 100).toFixed(2)}
+- Bills Due in 7 Days: ¥${(payables / 100).toFixed(2)}
+- Uncollected Customer Invoices: ¥${(receivables / 100).toFixed(2)}
+- Low Stock Items Needing Restock: ${lowStockCount}
+- 7-Day Net Cash Position: ${netGap >= 0 ? "+" : "-"}¥${Math.abs(netGap / 100).toFixed(2)}
+
+You are AGENTIC: When the user asks you to do a task (such as add stock, create an invoice, record a transaction, draft a reminder, or check financing), acknowledge the task clearly, explain what was planned/calculated, and specify the exact parameters (product name, quantity, price, customer, amount).
+Respond in friendly, natural language. If the user writes in Chinese, answer in Chinese. If in Bengali, answer in Bengali. Otherwise, answer in clear English.`;
+
+    // 1. DeepSeek API (深度求索 - China) or OpenAI
+    if (provider === "deepseek" || provider === "openai") {
+      const endpoint =
+        provider === "deepseek"
+          ? "https://api.deepseek.com/chat/completions"
+          : "https://api.openai.com/v1/chat/completions";
+
       try {
-        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        const response = await fetch(endpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${effectiveApiKey}`,
           },
           body: JSON.stringify({
-            model: effectiveModel,
+            model: provider === "deepseek" ? "deepseek-chat" : model,
             messages: [
-              {
-                role: "system",
-                content: `You are LEDGER ZERO AI, an elite financial operating system co-pilot.
-You give mathematically precise, concise, and actionable recommendations.
-Business Context: ${JSON.stringify(businessContext || { cash: 20000, payablesDue7Days: 45000, gap: -25000 })}`,
-              },
+              { role: "system", content: systemPrompt },
               { role: "user", content: prompt },
             ],
             temperature: 0.3,
@@ -35,59 +73,178 @@ Business Context: ${JSON.stringify(businessContext || { cash: 20000, payablesDue
 
         if (response.ok) {
           const data = await response.json();
-          const answer = data.choices[0]?.message?.content || "No response received.";
+          const answer = data.choices?.[0]?.message?.content || "No response received.";
           return NextResponse.json({
-            source: "openai_live",
-            model: effectiveModel,
+            connected: true,
+            source: `${provider}_live`,
+            model: data.model || model,
             answer,
           });
         }
-      } catch (openAiError) {
-        console.error("OpenAI call failed, falling back to local engine:", openAiError);
+      } catch (err) {
+        // Fallback to OpenAI endpoint if DeepSeek endpoint errored
+        if (provider === "deepseek") {
+          try {
+            const fallbackRes = await fetch("https://api.openai.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${effectiveApiKey}`,
+              },
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [
+                  { role: "system", content: systemPrompt },
+                  { role: "user", content: prompt },
+                ],
+                temperature: 0.3,
+                max_tokens: 800,
+              }),
+            });
+            if (fallbackRes.ok) {
+              const data = await fallbackRes.json();
+              return NextResponse.json({
+                connected: true,
+                source: "openai_live",
+                model: "gpt-4o-mini",
+                answer: data.choices?.[0]?.message?.content || "",
+              });
+            }
+          } catch {}
+        }
       }
     }
 
-    // Default intelligent financial engine response
-    const p = (prompt || "").toLowerCase();
-    let answer = "";
+    // 2. GLM / Zhipu AI (智谱清言 - China)
+    if (provider === "glm") {
+      try {
+        const response = await fetch("https://open.bigmodel.cn/api/paas/v4/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${effectiveApiKey}`,
+          },
+          body: JSON.stringify({
+            model: "glm-4-flash",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: prompt },
+            ],
+            temperature: 0.3,
+          }),
+        });
 
-    if (p.includes("shortage") || p.includes("gap") || p.includes("cash") || p.includes("liquidity")) {
-      answer = `### ⚠️ Liquidity Gap Analysis (T+5 Days)
-- **Available Cash:** $20,000.00
-- **Impending Payables (7 Days):** $45,000.00
-- **Projected Deficit:** **-$25,000.00** by Oct 21
+        if (response.ok) {
+          const data = await response.json();
+          return NextResponse.json({
+            connected: true,
+            source: "glm_live",
+            model: "glm-4-flash",
+            answer: data.choices?.[0]?.message?.content || "",
+          });
+        }
+      } catch (glmErr) {
+        console.warn("GLM error:", glmErr);
+      }
+    }
 
-#### Recommended Interventions:
-1. **Accelerate Overdue Receivables:** Offer a 2.0% prompt-settlement discount to *Apex Retail Partners* on Invoice INV-2026-089 ($15,000.00, 6 days overdue). Expected inflow: **+$14,700.00** within 48 hours.
-2. **Negotiate Supplier Deferral:** Request a 10-day payment extension with *Harbor Logistics* ($18,500.00).
-3. **Outcome:** Projected closing liquidity recovers from -$25,000.00 to **+$8,200.00**, eliminating insolvency risk without external debt.`;
-    } else if (p.includes("overdue") || p.includes("collect") || p.includes("invoice")) {
-      answer = `### 📋 Receivables Audit
-- **Total Outstanding:** $25,000.00 across 4 active invoices
-- **Overdue Exposure:** $15,000.00 (Apex Retail Partners, 6 days overdue)
+    // 3. Qwen / DashScope (通义千问 - 阿里 - China)
+    if (provider === "qwen") {
+      try {
+        const response = await fetch("https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${effectiveApiKey}`,
+          },
+          body: JSON.stringify({
+            model: "qwen-plus",
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: prompt },
+            ],
+            temperature: 0.3,
+          }),
+        });
 
-#### Immediate Action:
-A formal, professional reminder notice has been generated. Granting a 2% settlement incentive if paid within 48 hours is projected to recover $14,700.00 immediately.`;
-    } else {
-      answer = `### 💡 LEDGER ZERO Financial Co-Pilot
-I have analyzed your business accounts:
-- Current Cash Buffer: **$20,000.00**
-- 7-Day Net Liquidity: **-$25,000.00**
-- Active Invoices: **4 open ($25,000.00)**
+        if (response.ok) {
+          const data = await response.json();
+          return NextResponse.json({
+            connected: true,
+            source: "qwen_live",
+            model: "qwen-plus",
+            answer: data.choices?.[0]?.message?.content || "",
+          });
+        }
+      } catch (qwenErr) {
+        console.warn("Qwen error:", qwenErr);
+      }
+    }
 
-Would you like me to prepare an intervention proposal to resolve the upcoming 7-day cash gap?`;
+    // 4. Google Gemini
+    if (provider === "gemini") {
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${effectiveApiKey}`;
+      const response = await fetch(geminiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${systemPrompt}\n\nUser request: "${prompt}"` }] }],
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response received.";
+        return NextResponse.json({
+          connected: true,
+          source: "gemini_live",
+          model: "gemini-1.5-flash",
+          answer,
+        });
+      }
+    }
+
+    // 5. Groq Fast Llama
+    if (provider === "groq") {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${effectiveApiKey}`,
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: prompt },
+          ],
+          temperature: 0.3,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return NextResponse.json({
+          connected: true,
+          source: "groq_live",
+          model: "llama-3.3-70b-versatile",
+          answer: data.choices?.[0]?.message?.content || "",
+        });
+      }
     }
 
     return NextResponse.json({
-      source: "local_engine",
-      answer,
-      note: effectiveApiKey
-        ? "Configured with live AI engine."
-        : "Running in local financial engine mode. Set your OpenAI or Gemini API Key in /admin to activate live cloud LLM.",
+      connected: true,
+      error: true,
+      answer: `⚠️ **API Error (${detected.name}):** Could not complete request. Please verify that your API key is valid and has active quota.`,
     });
-  } catch (error) {
+  } catch (err: any) {
     return NextResponse.json(
-      { error: "Internal processing error" },
+      {
+        connected: false,
+        error: true,
+        answer: `Connection error: ${err.message || "Failed to reach AI endpoint."}`,
+      },
       { status: 500 }
     );
   }

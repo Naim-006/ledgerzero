@@ -31,23 +31,32 @@ export default function BudgetsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
-          <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Budget Surveillance
+          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            Spending Budgets
             <Badge variant="outline" size="sm">
-              October 2026
+              Monthly Limits
             </Badge>
           </h1>
-          <p className="text-xs text-brand-700/70 mt-1">
-            Category expense caps, real-time burn tracking, and early threshold anomaly alerts.
+          <p className="text-xs text-text-dim mt-1">
+            Set spending limits for expenses, watch where money goes, and avoid overspending.
           </p>
         </div>
       </div>
 
       {/* Utilization Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {utilizations.map((b) => {
+      {utilizations.length === 0 ? (
+        <Card className="p-10 text-center border-dashed border-border text-xs text-text-dim">
+          <PieChart className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-50" />
+          <h3 className="font-bold text-foreground text-sm">No spending budgets set yet</h3>
+          <p className="mt-1 max-w-sm mx-auto">
+            Set monthly budget limits for inventory, rent, utilities, and wages to keep your shop expenses on track.
+          </p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {utilizations.map((b) => {
           const isWarning = b.isWarning;
           const isExceeded = b.isExceeded;
 
@@ -119,6 +128,7 @@ export default function BudgetsPage() {
           );
         })}
       </div>
+      )}
     </div>
   );
 }

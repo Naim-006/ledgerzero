@@ -17,6 +17,9 @@ import {
   History,
   ShieldCheck,
   Settings,
+  ShoppingCart,
+  Boxes,
+  Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { actionService } from "@/services";
@@ -55,35 +58,26 @@ export function Sidebar() {
 
   const navigationGroups: NavGroup[] = [
     {
-      label: "Dashboard",
+      label: "Shop & Sales",
       items: [
-        { name: "Overview", href: "/", icon: LayoutDashboard },
-        { name: "AI Assistant", href: "/ai-workspace", icon: Bot },
+        { name: "Shop Overview", href: "/", icon: LayoutDashboard },
+        { name: "POS Sell Register", href: "/pos", icon: ShoppingCart },
+        { name: "Product Stock", href: "/inventory", icon: Boxes },
+        { name: "Money In & Out", href: "/transactions", icon: Receipt },
+        { name: "Bills & Invoices", href: "/invoices", icon: FileText },
+      ],
+    },
+    {
+      label: "Finance & Planning",
+      items: [
+        { name: "Cash Flow & Forecast", href: "/cash-flow", icon: TrendingUp },
+        { name: "Business Financing", href: "/financing", icon: Banknote },
         {
           name: "Pending Approvals",
           href: "/action-center",
           icon: CheckSquare,
           badge: pendingApprovalsCount,
         },
-        { name: "Cash Flow & Forecasts", href: "/cash-flow", icon: TrendingUp },
-      ],
-    },
-    {
-      label: "Finance",
-      items: [
-        { name: "Transactions", href: "/transactions", icon: Receipt },
-        { name: "Invoices", href: "/invoices", icon: FileText },
-        { name: "Customers & Receivables", href: "/receivables", icon: Users },
-        { name: "Suppliers & Payables", href: "/payables", icon: Building2 },
-      ],
-    },
-    {
-      label: "Management",
-      items: [
-        { name: "Budgets", href: "/budgets", icon: PieChart },
-        { name: "Reports & Insights", href: "/reports", icon: BarChart3 },
-        { name: "Activity Log", href: "/audit-logs", icon: History },
-        { name: "Team & Permissions", href: "/team", icon: ShieldCheck },
         { name: "Settings", href: "/settings", icon: Settings },
       ],
     },

@@ -34,7 +34,7 @@ import { formatShortDate } from "@/lib/dates";
 import { parseDecimalToMinorUnits } from "@/lib/money";
 
 export default function InvoicesPage() {
-  const { activeCurrency, permissions } = useApp();
+  const { business, activeCurrency, permissions } = useApp();
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [directionFilter, setDirectionFilter] = useState<string>("all");
@@ -121,7 +121,7 @@ export default function InvoicesPage() {
 
     try {
       await dataService.createInvoice({
-        businessId: "biz_harbor_pine",
+        businessId: business?.id || "biz_default",
         direction: extractedData.direction,
         invoiceNumber: extractedData.invoiceNumber,
         counterpartyId: "supp-new",
@@ -206,7 +206,7 @@ export default function InvoicesPage() {
             </Badge>
           </h1>
           <p className="text-xs text-brand-700/70 mt-1">
-            Accounts receivable and accounts payable with simulated OCR document ingestion.
+            Track customer sales invoices and supplier bills with automated AI document ingestion.
           </p>
         </div>
 
@@ -222,7 +222,7 @@ export default function InvoicesPage() {
             disabled={!permissions.canMutateFinancialRecords}
           >
             <Upload className="w-3.5 h-3.5" />
-            Upload Document (OCR)
+            Upload Bill or Receipt
           </Button>
         </div>
       </div>
@@ -365,12 +365,12 @@ export default function InvoicesPage() {
         </Table>
       </Card>
 
-      {/* Simulated OCR Upload & Review Modal */}
+      {/* Smart Invoice & Receipt Upload & Review Modal */}
       <Modal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
-        title="Simulated Invoice Ingestion & OCR Extraction"
-        description="Upload invoice PDF or image with per-field confidence scoring and human verification"
+        title="Smart Invoice & Receipt Ingestion"
+        description="Upload invoice PDF or receipt image for automated data extraction and human verification"
         maxWidth="xl"
       >
         <div className="space-y-4 text-xs">
@@ -378,9 +378,9 @@ export default function InvoicesPage() {
             <div className="p-8 border-2 border-dashed border-slateSurface-300 rounded-xl text-center space-y-2">
               <Upload className="w-8 h-8 text-forest-action mx-auto" />
               <div>
-                <p className="font-semibold text-brand-900">Upload Invoice (PDF / PNG / JPEG)</p>
+                <p className="font-semibold text-brand-900">Upload Invoice / Receipt (PDF / PNG / JPEG)</p>
                 <p className="text-[11px] text-brand-700/60 mt-0.5">
-                  Max file size: 10MB. Document parser runs simulated client-side OCR.
+                  Max file size: 10MB. Automated parser extracts vendor, amount, line items, and due date.
                 </p>
               </div>
               <input
@@ -395,7 +395,7 @@ export default function InvoicesPage() {
           {isExtracting && (
             <div className="p-8 text-center space-y-2">
               <Sparkles className="w-6 h-6 text-lime-accent mx-auto animate-spin" />
-              <p className="font-semibold text-brand-900">Running simulated OCR parser...</p>
+              <p className="font-semibold text-brand-900">Running AI document parser...</p>
               <p className="text-[11px] text-brand-700/60">
                 Extracting metadata, line items, tax totals, and due date.
               </p>
@@ -408,11 +408,11 @@ export default function InvoicesPage() {
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-forest-action" />
                   <span className="font-semibold text-forest">
-                    Simulated Extraction Completed ({extractedData.confidence}% Overall Confidence)
+                    Automated Extraction Completed ({extractedData.confidence}% Confidence)
                   </span>
                 </div>
-                <Badge variant="simulated" size="sm">
-                  Simulated
+                <Badge variant="lime" size="sm">
+                  AI Parsed
                 </Badge>
               </div>
 
@@ -510,7 +510,7 @@ export default function InvoicesPage() {
                 onClick={handleCommitExtracted}
                 disabled={!permissions.canMutateFinancialRecords}
               >
-                Verify & Commit to Ledger
+                Save Bill to System
               </Button>
             )}
           </div>

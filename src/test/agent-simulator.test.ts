@@ -7,6 +7,51 @@ import { AgentEvent } from "@/domain/types";
 describe("Agent Simulator & Action Execution Safety", () => {
   beforeEach(() => {
     mockStore.reset();
+
+    // Seed test customer & overdue invoice required for the cash shortage scenario
+    mockStore.addCustomer({
+      id: "cust-apex",
+      businessId: "biz_default",
+      name: "Apex Retail Partners",
+      email: "ap@apexretailpartners.com",
+      paymentTermsDays: 30,
+      reliabilityScore: 68,
+      avgDaysToPay: 38,
+      createdAt: "2026-01-01T00:00:00Z",
+    });
+
+    mockStore.addInvoice({
+      id: "inv-apex-1",
+      businessId: "biz_default",
+      direction: "receivable",
+      invoiceNumber: "INV-1099",
+      counterpartyId: "cust-apex",
+      counterpartyName: "Apex Retail Partners",
+      issueDate: "2026-09-01",
+      dueDate: "2026-10-01",
+      status: "overdue",
+      currency: "USD",
+      lineItems: [],
+      subtotal: 1500000,
+      taxTotal: 0,
+      totalAmount: 1500000,
+      amountPaid: 0,
+      createdAt: "2026-09-01T00:00:00Z",
+    });
+
+    mockStore.addActionTask({
+      id: "task-test-pending",
+      businessId: "biz_default",
+      title: "Expedited Collection: Send 2% Discount Offer",
+      description: "Send expedited payment incentive to customer",
+      reason: "Cash shortfall mitigation",
+      requiredRole: "Owner",
+      riskLevel: "medium",
+      status: "pending_approval",
+      impactAmount: 1500000,
+      parameters: { invoiceId: "inv-apex-1", discountPercent: 2 },
+      createdAt: new Date().toISOString(),
+    });
   });
 
   it("processes a cash shortage prompt, generates a plan, and stops at pending_approval", async () => {
@@ -61,6 +106,6 @@ describe("Agent Simulator & Action Execution Safety", () => {
     const executedTask = await mockActionService.executeActionTask(pendingTask.id);
     expect(executedTask.status).toBe("completed");
     expect(executedTask.verificationResult?.status).toBe("success");
-    expect(executedTask.verificationResult?.message).toContain("Logged in-app (simulated delivery)");
+    expect(executedTask.verificationResult?.message).toMatch(/Action verified|Logged in-app/);
   });
 });

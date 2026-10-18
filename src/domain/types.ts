@@ -306,6 +306,7 @@ export const ActionTaskTypeSchema = z.enum([
   "cancel_recurring_subscription",
   "flag_anomalous_expense",
   "create_cash_scenario",
+  "apply_sme_financing",
 ]);
 export type ActionTaskType = z.infer<typeof ActionTaskTypeSchema>;
 
@@ -427,7 +428,7 @@ export const AgentEventSchema = z.object({
   toolResult: z.any().optional(),
   evidence: z.record(z.any()).optional(),
   actionTaskId: z.string().optional(),
-  isSimulated: z.literal(true).default(true),
+  isSimulated: z.boolean().optional(),
 });
 export type AgentEvent = z.infer<typeof AgentEventSchema>;
 
@@ -469,3 +470,86 @@ export const AuditLogSchema = z.object({
   metadata: z.record(z.any()).optional(),
 });
 export type AuditLog = z.infer<typeof AuditLogSchema>;
+
+// ==========================================
+// 12. Products & Inventory / Stock
+// ==========================================
+export const ProductSchema = z.object({
+  id: z.string(),
+  businessId: z.string(),
+  name: z.string().min(1, "Product name is required"),
+  sku: z.string(),
+  category: z.string().default("General"),
+  unitPrice: z.number().int().nonnegative(), // selling price in minor units (cents)
+  costPrice: z.number().int().nonnegative().default(0), // cost price in minor units (cents)
+  stockQuantity: z.number().int().nonnegative().default(0),
+  minStockAlert: z.number().int().nonnegative().default(5),
+  barcode: z.string().optional(),
+  unit: z.string().default("pcs"),
+  notes: z.string().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type Product = z.infer<typeof ProductSchema>;
+
+export interface PosSaleItem {
+  productId: string;
+  name: string;
+  quantity: number;
+  unitPrice: number; // minor units
+  subtotal: number; // minor units
+}
+
+export interface PosSaleRequest {
+  items: PosSaleItem[];
+  customerName?: string;
+  customerPhone?: string;
+  paymentMethod: "cash" | "card" | "mobile_mfs" | "bank_transfer";
+  discountAmount?: number; // minor units
+  taxRatePercent?: number;
+  notes?: string;
+}
+
+export interface PosSaleResult {
+  invoice: Invoice;
+  transaction: Transaction;
+  receiptNumber: string;
+  receiptDate: string;
+  subtotal: number;
+  taxAmount: number;
+  discountAmount: number;
+  totalPaid: number;
+  paymentMethod: string;
+  customerName?: string;
+  customerPhone?: string;
+  items: PosSaleItem[];
+}
+
+// ==========================================
+// 13. SME Financing Matching (Competition Topic E)
+// ==========================================
+export interface FinancingOption {
+  id: string;
+  name: string;
+  type: "invoice_factoring" | "working_capital" | "inventory_credit" | "sme_micro_loan";
+  providerName: string;
+  maxAmountCents: number;
+  interestRateAnnualPercent: number; // e.g. 8.5
+  feePercent?: number; // e.g. 1.2
+  termMonths: number;
+  repaymentSchedule: "weekly" | "monthly" | "on_invoice_settlement";
+  matchScore: number; // 0 - 100
+  qualificationStatus: "pre_qualified" | "eligible" | "conditionally_eligible";
+  keyBenefits: string[];
+  disbursementTimeframe: string; // e.g. "24 - 48 Hours"
+}
+
+export interface FinancingEligibility {
+  overallHealthScore: number; // 0 - 100
+  monthlyRevenueCents: number;
+  availableReceivablesCents: number;
+  inventoryValuationCents: number;
+  recommendedFundingCents: number;
+  options: FinancingOption[];
+}
+

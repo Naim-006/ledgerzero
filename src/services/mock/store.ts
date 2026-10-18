@@ -13,6 +13,7 @@ import {
   AuditLog,
   Member,
   Role,
+  Product,
 } from "@/domain/types";
 import {
   INITIAL_BUSINESS,
@@ -24,9 +25,10 @@ import {
   INITIAL_BUDGETS,
   INITIAL_ACTIONS,
   INITIAL_AUDIT_LOGS,
+  INITIAL_PRODUCTS,
 } from "./seed";
 
-const STORAGE_KEY = "ledger_zero_mock_store_v1";
+const STORAGE_KEY = "ledger_zero_production_store_v3";
 
 export interface MockStoreState {
   business: Business;
@@ -43,24 +45,48 @@ export interface MockStoreState {
   reminders: Reminder[];
   agentRuns: AgentRun[];
   auditLogs: AuditLog[];
+  products: Product[];
 }
 
 function getInitialState(): MockStoreState {
   return {
-    business: { ...INITIAL_BUSINESS },
-    members: [...INITIAL_MEMBERS],
-    currentMemberId: INITIAL_MEMBERS[0].id,
-    customers: [...INITIAL_CUSTOMERS],
-    suppliers: [...INITIAL_SUPPLIERS],
-    transactions: [...INITIAL_TRANSACTIONS],
-    invoices: [...INITIAL_INVOICES],
-    budgets: [...INITIAL_BUDGETS],
+    business: {
+      id: "biz_default",
+      name: "My Business",
+      legalName: "My Business Co., Ltd.",
+      countryCode: "CN",
+      currency: "CNY",
+      timeZone: "Asia/Shanghai",
+      fiscalYearStartMonth: 1,
+      taxIdentifier: "91310000XXXXXXXXXX",
+      taxRatePercent: 13,
+      taxLabel: "增值税 (VAT)",
+      openingCashBalance: 0,
+      createdAt: new Date().toISOString(),
+    },
+    members: [
+      {
+        id: "mem-owner",
+        businessId: "biz_default",
+        name: "Business Owner",
+        email: "owner@company.com",
+        role: "Owner",
+        createdAt: new Date().toISOString(),
+      },
+    ],
+    currentMemberId: "mem-owner",
+    customers: [],
+    suppliers: [],
+    transactions: [],
+    invoices: [],
+    budgets: [],
     scenarios: [],
-    actionTasks: [...INITIAL_ACTIONS],
+    actionTasks: [],
     approvals: [],
     reminders: [],
     agentRuns: [],
-    auditLogs: [...INITIAL_AUDIT_LOGS],
+    auditLogs: [],
+    products: [],
   };
 }
 
@@ -77,9 +103,24 @@ class MockStore {
       return getInitialState();
     }
     try {
+      // Purge any legacy demo stores
+      localStorage.removeItem("ledger_zero_mock_store_v1");
+      localStorage.removeItem("ledger_zero_live_store_v2");
+      localStorage.removeItem("ledger_zero_mock_store");
+      localStorage.removeItem("ledger_zero_demo");
+
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (
+          parsed?.business?.name?.includes("Harbor & Pine") ||
+          parsed?.business?.openingCashBalance === 1500000 ||
+          (parsed?.transactions && parsed.transactions.some((t: any) => t.id === "tx-seed-1"))
+        ) {
+          localStorage.removeItem(STORAGE_KEY);
+          return getInitialState();
+        }
+        return parsed;
       }
     } catch {
       // Fallback on parse failure
@@ -116,6 +157,72 @@ class MockStore {
     if (typeof window !== "undefined") {
       localStorage.removeItem(STORAGE_KEY);
     }
+    this.saveToStorage();
+  }
+
+  public initializeFreshUserWorkspace(user: {
+    id: string;
+    email: string;
+    name: string;
+    businessName?: string;
+    vatId?: string;
+  }) {
+    const bizId = `biz-${user.id}`;
+    const displayName = user.businessName?.trim() || `${user.name}'s Business`;
+    const legalName = user.businessName?.trim() ? `${user.businessName.trim()} LLC` : `${user.name} LLC`;
+    const cleanState: MockStoreState = {
+      business: {
+        id: bizId,
+        name: displayName,
+        legalName,
+        countryCode: "US",
+        currency: "USD",
+        timeZone: "America/New_York",
+        fiscalYearStartMonth: 1,
+        taxIdentifier: user.vatId?.trim() || "",
+        taxRatePercent: 0,
+        taxLabel: "VAT / Tax",
+        openingCashBalance: 0,
+        createdAt: new Date().toISOString(),
+      },
+      members: [
+        {
+          id: user.id,
+          businessId: bizId,
+          name: user.name,
+          email: user.email,
+          role: "Owner",
+          createdAt: new Date().toISOString(),
+        },
+      ],
+      currentMemberId: user.id,
+      customers: [],
+      suppliers: [],
+      transactions: [],
+      invoices: [],
+      budgets: [],
+      scenarios: [],
+      actionTasks: [],
+      approvals: [],
+      reminders: [],
+      agentRuns: [],
+      auditLogs: [
+        {
+          id: `log-${Date.now()}`,
+          businessId: bizId,
+          actorName: user.name,
+          actorType: "user",
+          action: "WORKSPACE_INITIALIZED",
+          targetType: "Workspace",
+          targetId: bizId,
+          details: "New workspace ready. Blank ledger initialized.",
+          timestamp: new Date().toISOString(),
+        },
+      ],
+      products: [],
+    };
+
+    this.state = cleanState;
     this.saveToStorage();
   }
 
@@ -236,6 +343,26 @@ class MockStore {
 
   public addMember(m: Member) {
     this.state.members.push(m);
+    this.saveToStorage();
+  }
+
+  public addProduct(p: Product) {
+    if (!this.state.products) this.state.products = [];
+    this.state.products.unshift(p);
+    this.saveToStorage();
+  }
+
+  public updateProduct(id: string, updates: Partial<Product>) {
+    if (!this.state.products) this.state.products = [];
+    this.state.products = this.state.products.map((p) =>
+      p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p
+    );
+    this.saveToStorage();
+  }
+
+  public deleteProduct(id: string) {
+    if (!this.state.products) this.state.products = [];
+    this.state.products = this.state.products.filter((p) => p.id !== id);
     this.saveToStorage();
   }
 }

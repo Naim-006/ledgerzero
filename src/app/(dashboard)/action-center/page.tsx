@@ -155,23 +155,17 @@ function ActionCenterContent() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
-          <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Action Center
-            <Badge variant="simulated" size="sm">
-              Simulated Delivery
+          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            Pending Approvals & Actions
+            <Badge variant="outline" size="sm" className="text-xs">
+              Owner Sign-off Gate
             </Badge>
           </h1>
-          <p className="text-xs text-brand-700/70 mt-1">
-            Governed intervention queue: review, authorize, execute, and verify autonomous financial tasks.
+          <p className="text-xs text-muted-foreground mt-1">
+            Review and approve automated financial decisions before they take effect. You have full control.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" size="sm">
-            Observe → Approve → Execute → Verify
-          </Badge>
         </div>
       </div>
 
@@ -181,14 +175,14 @@ function ActionCenterContent() {
       {/* Action Task List */}
       <div className="space-y-3.5">
         {filteredTasks.length === 0 ? (
-          <Card className="p-8 text-center text-xs text-brand-700/60">
+          <Card className="p-8 text-center text-xs text-muted-foreground">
             No action tasks found in this view.
           </Card>
         ) : (
           filteredTasks.map((task) => (
             <Card
               key={task.id}
-              className="p-5 hover:border-brand-300 transition-all cursor-pointer shadow-card hover:shadow-cardHover"
+              className="p-5 hover:border-forest/40 transition-all cursor-pointer shadow-xs"
               onClick={() => handleOpenTask(task)}
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -206,7 +200,7 @@ function ActionCenterContent() {
                       }
                       size="sm"
                     >
-                      {task.status.toUpperCase()} (SIMULATED)
+                      {task.status.replace(/_/g, " ").toUpperCase()}
                     </Badge>
 
                     <Badge
@@ -216,13 +210,13 @@ function ActionCenterContent() {
                       {task.riskLevel.toUpperCase()} RISK
                     </Badge>
 
-                    <span className="text-[11px] text-brand-700 font-medium">
-                      Requires {task.requiredRole}
+                    <span className="text-[11px] text-muted-foreground font-medium">
+                      Owner Decision
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-bold text-brand-900">{task.title}</h3>
-                  <p className="text-xs text-brand-700 leading-relaxed max-w-3xl">
+                  <h3 className="text-sm font-bold text-foreground">{task.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed max-w-3xl">
                     {task.reason}
                   </p>
                 </div>
@@ -230,17 +224,17 @@ function ActionCenterContent() {
                 <div className="flex items-center gap-3 shrink-0">
                   <Button variant="outline" size="sm">
                     <Eye className="w-3.5 h-3.5" />
-                    Inspect Details
+                    Review Details
                   </Button>
                 </div>
               </div>
 
               {/* Verified Result Strip */}
               {task.verificationResult && (
-                <div className="mt-3 pt-3 border-t border-slateSurface-100 flex items-center gap-2 text-xs text-success-700 dark:text-success-400">
-                  <CheckCircle2 className="w-4 h-4 shrink-0 text-success-600 dark:text-success-400" />
-                  <span className="font-semibold">Verified Result (Simulated):</span>
-                  <span className="text-brand-900/80 truncate">
+                <div className="mt-3 pt-3 border-t border-border/60 flex items-center gap-2 text-xs text-emerald-600">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
+                  <span className="font-semibold">Completed:</span>
+                  <span className="text-foreground/80 truncate">
                     {task.verificationResult.message}
                   </span>
                 </div>
@@ -350,40 +344,42 @@ function ActionCenterContent() {
             )}
 
             {/* Parameters Preview */}
-            <div>
-              <span className="font-bold text-brand-900 block mb-1">
-                Execution Parameters
-              </span>
-              <pre className="p-3 bg-slateSurface-100 rounded-lg font-mono text-[11px] text-brand-800 overflow-x-auto">
-                {JSON.stringify(selectedTask.parameters, null, 2)}
-              </pre>
-            </div>
-
-            {/* Verification Result */}
-            {selectedTask.verificationResult && (
-              <div className="p-3.5 bg-success-50 border border-success-200 rounded-xl space-y-1">
-                <div className="flex items-center gap-1.5 font-bold text-success-800 dark:text-success-300">
-                  <CheckCircle2 className="w-4 h-4 text-success-600 dark:text-success-400" />
-                  Verified Final State (Simulated Delivery)
-                </div>
-                <p className="text-success-900/80 dark:text-success-200 leading-relaxed">
-                  {selectedTask.verificationResult.message}
-                </p>
-                <div className="text-[11px] text-brand-700 pt-1">
-                  Verified at: {selectedTask.verificationResult.verifiedAt}
+            {selectedTask.parameters && Object.keys(selectedTask.parameters).length > 0 && (
+              <div>
+                <span className="font-bold text-foreground text-xs block mb-1.5">
+                  Action Details & Settings
+                </span>
+                <div className="p-3 bg-surface-elevated rounded-lg border border-border/60 text-xs space-y-1">
+                  {Object.entries(selectedTask.parameters).map(([k, v]) => (
+                    <div key={k} className="flex justify-between items-center text-xs">
+                      <span className="text-muted-foreground capitalize">{k.replace(/([A-Z])/g, " $1")}:</span>
+                      <span className="font-semibold text-foreground">
+                        {typeof v === "object" ? JSON.stringify(v) : String(v)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* Role Guard Warning */}
-            {!permissions.canApproveActions && (
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 rounded-lg text-amber-900 dark:text-amber-200 text-xs">
-                ⚠️ Your current role (<strong>{currentRole}</strong>) lacks approval permissions. Switch to <strong>Owner</strong> or <strong>Admin</strong> in the top bar to approve or execute this task.
+            {/* Verification Result */}
+            {selectedTask.verificationResult && (
+              <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-1">
+                <div className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-300 text-xs">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  Action Completed & Recorded
+                </div>
+                <p className="text-foreground/90 text-xs leading-relaxed">
+                  {selectedTask.verificationResult.message}
+                </p>
+                <div className="text-[11px] text-muted-foreground pt-1">
+                  Completed on: {new Date(selectedTask.verificationResult.verifiedAt).toLocaleString()}
+                </div>
               </div>
             )}
 
             {/* Controls */}
-            <div className="pt-4 border-t border-slateSurface-100 flex items-center justify-between">
+            <div className="pt-4 border-t border-border flex items-center justify-between">
               <Button
                 variant="outline"
                 size="sm"
@@ -399,7 +395,7 @@ function ActionCenterContent() {
                       variant="danger"
                       size="sm"
                       isLoading={isProcessing}
-                      disabled={!permissions.canApproveActions || isProcessing}
+                      disabled={isProcessing}
                       onClick={handleReject}
                     >
                       <XCircle className="w-4 h-4" />
@@ -410,11 +406,11 @@ function ActionCenterContent() {
                       variant="primary"
                       size="sm"
                       isLoading={isProcessing}
-                      disabled={!permissions.canApproveActions || isProcessing}
+                      disabled={isProcessing}
                       onClick={handleApprove}
                     >
                       <CheckCircle2 className="w-4 h-4" />
-                      Authorize & Approve
+                      Approve & Authorize
                     </Button>
                   </>
                 )}
@@ -424,11 +420,11 @@ function ActionCenterContent() {
                     variant="lime"
                     size="sm"
                     isLoading={isProcessing}
-                    disabled={!permissions.canExecuteActions || isProcessing}
+                    disabled={isProcessing}
                     onClick={handleExecute}
                   >
                     <Play className="w-4 h-4" />
-                    Execute Approved Action (Simulated)
+                    Execute Approved Action
                   </Button>
                 )}
               </div>

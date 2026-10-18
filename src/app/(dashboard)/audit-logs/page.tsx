@@ -50,13 +50,13 @@ export default function AuditLogsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
         <div>
           <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Agent Activity & Audit Logs
+            Activity History
             <Badge variant="outline" size="sm">
-              Immutable Trail
+              Verified Log
             </Badge>
           </h1>
           <p className="text-xs text-brand-700/70 mt-1">
-            Complete cryptographic audit trail of all autonomous agent reasoning, human approvals, and ledger mutations.
+            Full history of all actions taken by the AI assistant and shop owner.
           </p>
         </div>
       </div>
@@ -68,7 +68,7 @@ export default function AuditLogsPage() {
             <Search className="w-4 h-4 text-brand-700/50 absolute left-3 top-2.5" />
             <Input
               type="text"
-              placeholder="Search audit trail by actor, action or details..."
+              placeholder="Search history by person, AI, or action..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -80,9 +80,9 @@ export default function AuditLogsPage() {
             onChange={(e) => setActorFilter(e.target.value)}
             className="w-40"
             options={[
-              { value: "all", label: "All Actors" },
-              { value: "agent", label: "Agent Actions" },
-              { value: "user", label: "User Mutations" },
+              { value: "all", label: "All Activities" },
+              { value: "agent", label: "AI Actions" },
+              { value: "user", label: "Owner Actions" },
             ]}
           />
         </div>

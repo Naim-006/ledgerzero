@@ -26,6 +26,7 @@ import {
   CheckCircle2,
   Clock,
   Sparkles,
+  ShoppingCart,
 } from "lucide-react";
 import Link from "next/link";
 import { formatShortDate } from "@/lib/dates";
@@ -75,7 +76,11 @@ export default function OverviewPage() {
   }, [loadData]);
 
   const net7DayGap = (cashPos?.currentCash || 0) - (paySummary?.dueWithin7Days || 0);
-  const hasShortfall = (forecast && forecast.minimumCash < 0) || net7DayGap < 0;
+  const hasShortfall = (paySummary?.dueWithin7Days || 0) > 0 && net7DayGap < 0;
+  const isFreshWorkspace =
+    (cashPos?.currentCash || 0) === 0 &&
+    (recSummary?.totalReceivables || 0) === 0 &&
+    (paySummary?.dueWithin7Days || 0) === 0;
 
   return (
     <div className="space-y-6 fade-in select-none">
@@ -91,10 +96,16 @@ export default function OverviewPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link href="/pos">
+            <Button size="sm" className="bg-forest hover:bg-forest/90 text-white font-semibold text-xs shadow-xs gap-1.5">
+              <ShoppingCart className="w-3.5 h-3.5 text-lime-accent" />
+              POS Quick Sell
+            </Button>
+          </Link>
           <Link href="/ai-workspace">
-            <Button variant="primary" size="sm" className="font-semibold shadow-xs">
-              <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-              Ask AI Co-Pilot
+            <Button variant="outline" size="sm" className="font-semibold text-xs">
+              <Sparkles className="w-3.5 h-3.5 mr-1.5 text-forest" />
+              AI Co-Pilot
             </Button>
           </Link>
           <Link href="/action-center">
@@ -106,15 +117,35 @@ export default function OverviewPage() {
         </div>
       </div>
 
-      {/* Sleek Liquidity Alert Callout */}
+      {/* Fresh Account Greeting Banner */}
+      {isFreshWorkspace && (
+        <div className="p-4 bg-surface border border-border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div>
+            <h4 className="text-xs font-bold text-foreground">Fresh Workspace Ready</h4>
+            <p className="text-xs text-text-dim mt-0.5">
+              Your financial ledger is clean and ready. Record your first transaction or invoice to begin tracking real cash flow.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Link href="/transactions">
+              <Button variant="outline" size="sm" className="text-xs">+ Add Transaction</Button>
+            </Link>
+            <Link href="/invoices">
+              <Button variant="primary" size="sm" className="text-xs">+ New Invoice</Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Sleek Liquidity Alert Callout (Only appears if real payables exceed cash) */}
       {hasShortfall && (
         <div className="p-3.5 bg-rose-50/70 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/40 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
           <div className="flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
             <div className="text-xs text-rose-900 dark:text-rose-200">
               <span className="font-semibold">Projected Cash Shortfall:</span> Available cash of{" "}
-              <strong>$20,000.00</strong> will not cover upcoming payables of{" "}
-              <strong>$45,000.00</strong> due within 5 days.
+              <strong><CurrencyAmount amount={cashPos?.currentCash || 0} /></strong> will not cover upcoming payables of{" "}
+              <strong><CurrencyAmount amount={paySummary?.dueWithin7Days || 0} /></strong> due within 7 days.
             </div>
           </div>
 
@@ -127,44 +158,143 @@ export default function OverviewPage() {
         </div>
       )}
 
-      {/* Top 4 Financial Metric Cards — Clean & Minimal */}
+      {/* 4-Step Connected Shop Operations Workflow */}
+      <div className="bg-surface border border-border rounded-2xl p-4 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
+          <span className="text-xs font-bold text-foreground flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-forest-action animate-pulse" />
+            Shop Operations Flow & Connected Steps
+          </span>
+          <span className="text-[11px] text-text-dim">
+            Daily shop workflow: 1. Checkout Sell → 2. Stock Update → 3. Bills Due → 4. Cash Forecast
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Link
+            href="/pos"
+            className="p-3 rounded-xl bg-surface-subtle hover:bg-forest-action/10 border border-border/70 hover:border-forest-action transition-all group flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-forest text-lime-accent text-[10px] flex items-center justify-center font-bold">1</span>
+                  POS Sell Register
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
+              </div>
+              <p className="text-[11px] text-text-dim leading-snug">
+                Checkout sales at cashier counter and print thermal receipts.
+              </p>
+            </div>
+            <div className="mt-2 text-[10px] font-semibold text-forest-action">
+              Auto-deducts inventory →
+            </div>
+          </Link>
+
+          <Link
+            href="/inventory"
+            className="p-3 rounded-xl bg-surface-subtle hover:bg-forest-action/10 border border-border/70 hover:border-forest-action transition-all group flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-forest text-lime-accent text-[10px] flex items-center justify-center font-bold">2</span>
+                  Product Stock
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
+              </div>
+              <p className="text-[11px] text-text-dim leading-snug">
+                Track quantity in hand, low-stock warnings & profit margin.
+              </p>
+            </div>
+            <div className="mt-2 text-[10px] font-semibold text-forest-action">
+              Manage inventory →
+            </div>
+          </Link>
+
+          <Link
+            href="/invoices"
+            className="p-3 rounded-xl bg-surface-subtle hover:bg-forest-action/10 border border-border/70 hover:border-forest-action transition-all group flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-forest text-lime-accent text-[10px] flex items-center justify-center font-bold">3</span>
+                  Bills & Invoices
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
+              </div>
+              <p className="text-[11px] text-text-dim leading-snug">
+                Manage vendor bills to pay and uncollected customer credit.
+              </p>
+            </div>
+            <div className="mt-2 text-[10px] font-semibold text-forest-action">
+              Feeds cash schedule →
+            </div>
+          </Link>
+
+          <Link
+            href="/cash-flow"
+            className="p-3 rounded-xl bg-surface-subtle hover:bg-forest-action/10 border border-border/70 hover:border-forest-action transition-all group flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-forest text-lime-accent text-[10px] flex items-center justify-center font-bold">4</span>
+                  Cash Flow Forecast
+                </span>
+                <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
+              </div>
+              <p className="text-[11px] text-text-dim leading-snug">
+                7 & 30-day projection with deficit warnings & what-if planner.
+              </p>
+            </div>
+            <div className="mt-2 text-[10px] font-semibold text-forest-action">
+              Protect liquidity →
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      {/* Top 4 Financial Metric Cards — Clean & Plain English */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          title="Cash Position"
+          title="Cash in Hand & Bank"
           amount={cashPos?.currentCash || 0}
-          period="Verified bank funds"
+          period="Verified available money"
           href="/transactions"
-          trend={{ value: "+$4,500 settled", isPositive: true }}
+          trend={cashPos?.totalIncome ? { value: "Money coming in", isPositive: true } : undefined}
         />
 
         <MetricCard
-          title="Customer Receivables"
+          title="Money Owed to You"
           amount={recSummary?.totalReceivables || 0}
-          period="Open customer invoices"
+          period="Unpaid customer invoices"
           href="/receivables"
           variant={recSummary?.overdueAmount ? "warning" : "default"}
-          trend={{ value: "4 invoices open", isPositive: true }}
+          trend={recSummary?.count ? { value: `${recSummary.count} invoices open`, isPositive: true } : undefined}
         />
 
         <MetricCard
-          title="Upcoming Payables"
+          title="Upcoming Bills (7 Days)"
           amount={paySummary?.dueWithin7Days || 0}
-          period="Due within 7 days"
+          period="Bills due this week"
           href="/payables"
-          variant="risk"
-          trend={{ value: "High urgency", isPositive: false }}
+          variant={paySummary?.dueWithin7Days ? "risk" : "default"}
+          trend={paySummary?.dueWithin7Days ? { value: "Bills scheduled", isPositive: false } : undefined}
         />
 
         <MetricCard
-          title="7-Day Liquidity Buffer"
+          title="Cash Left After Bills"
           amount={net7DayGap}
-          period="Estimated net balance"
+          period="Money left after paying bills"
           href="/cash-flow"
-          variant={net7DayGap < 0 ? "risk" : "success"}
-          trend={{
-            value: net7DayGap < 0 ? "Shortfall alert" : "Safe liquidity",
+          variant={net7DayGap < 0 ? "risk" : "default"}
+          trend={net7DayGap !== 0 ? {
+            value: net7DayGap < 0 ? "Shortfall warning" : "Safe balance",
             isPositive: net7DayGap >= 0,
-          }}
+          } : undefined}
         />
       </div>
 
@@ -175,10 +305,10 @@ export default function OverviewPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-sm font-bold text-foreground">
-                Cash Flow Forecast
+                Projected Cash Forecast
               </CardTitle>
               <p className="text-xs text-text-dim mt-0.5">
-                Projected cash balance trajectory based on scheduled payments.
+                Estimated bank balance trajectory based on scheduled sales and bills.
               </p>
             </div>
 
@@ -211,7 +341,7 @@ export default function OverviewPage() {
 
             <div className="grid grid-cols-3 gap-4 mt-4 pt-3 border-t border-border/60 text-xs">
               <div>
-                <span className="text-text-dim block">Minimum Cash</span>
+                <span className="text-text-dim block">Lowest Projected Balance</span>
                 <span
                   className={`font-semibold text-sm tabular-nums ${
                     forecast?.minimumCash! < 0 ? "text-rose-600" : "text-emerald-600"
@@ -221,13 +351,13 @@ export default function OverviewPage() {
                 </span>
               </div>
               <div>
-                <span className="text-text-dim block">Expected Inflows</span>
+                <span className="text-text-dim block">Money Coming In</span>
                 <span className="font-semibold text-sm tabular-nums text-foreground">
                   <CurrencyAmount amount={forecast?.totalExpectedInflows || 0} />
                 </span>
               </div>
               <div>
-                <span className="text-text-dim block">Scheduled Outflows</span>
+                <span className="text-text-dim block">Money Going Out</span>
                 <span className="font-semibold text-sm tabular-nums text-rose-600">
                   <CurrencyAmount amount={forecast?.totalScheduledOutflows || 0} />
                 </span>
@@ -241,10 +371,10 @@ export default function OverviewPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-sm font-bold text-foreground">
-                Receivables Aging
+                Unpaid Invoices Timeline
               </CardTitle>
               <p className="text-xs text-text-dim mt-0.5">
-                Outstanding balances by days overdue
+                Breakdown of unpaid customer bills by due date
               </p>
             </div>
             <Link
@@ -258,15 +388,23 @@ export default function OverviewPage() {
           <CardContent>
             <AgingChart buckets={agingBuckets} height={200} />
 
-            <div className="mt-4 p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 rounded-xl text-xs">
-              <div className="flex items-center justify-between font-semibold text-amber-900 dark:text-amber-200">
-                <span>Apex Retail Partners</span>
-                <span className="tabular-nums font-bold">$15,000.00</span>
+            {recSummary && recSummary.overdueAmount > 0 ? (
+              <div className="mt-4 p-3 bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 rounded-xl text-xs">
+                <div className="flex items-center justify-between font-semibold text-amber-900 dark:text-amber-200">
+                  <span>Overdue Invoices</span>
+                  <span className="tabular-nums font-bold">
+                    <CurrencyAmount amount={recSummary.overdueAmount} />
+                  </span>
+                </div>
+                <p className="text-text-dim text-[11px] mt-1 leading-relaxed">
+                  You have overdue customer invoices. Send a quick payment reminder to speed up cash collection.
+                </p>
               </div>
-              <p className="text-text-dim text-[11px] mt-1 leading-relaxed">
-                Invoice INV-2026-089 is <strong>6 days overdue</strong>. Recommended for expedited collection with 2% discount incentive.
-              </p>
-            </div>
+            ) : (
+              <div className="mt-4 p-3 bg-surface-subtle border border-border/60 rounded-xl text-xs text-text-dim text-center">
+                All customer invoices are current. No overdue payments.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -309,7 +447,7 @@ export default function OverviewPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                        {task.riskLevel} Risk • Requires {task.requiredRole}
+                        Requires Owner Decision
                       </span>
                       <h4 className="text-xs font-bold text-foreground mt-0.5">
                         {task.title}
@@ -330,7 +468,6 @@ export default function OverviewPage() {
                         variant="primary"
                         size="sm"
                         className="text-xs font-semibold"
-                        disabled={!permissions.canApproveActions}
                       >
                         Review Action
                       </Button>

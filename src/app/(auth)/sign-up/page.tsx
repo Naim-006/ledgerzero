@@ -7,12 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabase/client";
+import { mockStore } from "@/services/mock/store";
 
 export default function SignUpPage() {
   const router = useRouter();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [vatIdentifier, setVatIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,16 +35,33 @@ export default function SignUpPage() {
 
     try {
       const supabase = getSupabaseClient();
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
-          data: { full_name: name.trim() },
+          data: {
+            full_name: name.trim(),
+            business_name: businessName.trim() || undefined,
+            vat_id: vatIdentifier.trim() || undefined,
+          },
         },
       });
 
       if (signUpError) {
         setError(signUpError.message);
+        return;
+      }
+
+      // If user session is immediately created (email confirmation disabled in Supabase)
+      if (signUpData?.user && signUpData?.session) {
+        mockStore.initializeFreshUserWorkspace({
+          id: signUpData.user.id,
+          email: signUpData.user.email || email.trim(),
+          name: name.trim(),
+          businessName: businessName.trim() || undefined,
+          vatId: vatIdentifier.trim() || undefined,
+        });
+        router.push("/");
         return;
       }
 
@@ -154,6 +174,24 @@ export default function SignUpPage() {
                   required
                   autoComplete="email"
                 />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Input
+                    label="Shop / Business Name (Optional)"
+                    id="businessName"
+                    placeholder="e.g. Apex Hardware"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                  />
+
+                  <Input
+                    label="VAT / Tax ID (Optional)"
+                    id="vatId"
+                    placeholder="e.g. VAT-894201"
+                    value={vatIdentifier}
+                    onChange={(e) => setVatIdentifier(e.target.value)}
+                  />
+                </div>
 
                 <div>
                   <label htmlFor="password" className="block text-xs font-semibold text-brand-900 mb-1.5">

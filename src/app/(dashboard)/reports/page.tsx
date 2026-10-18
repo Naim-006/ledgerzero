@@ -76,19 +76,19 @@ export default function ReportsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
         <div>
           <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Financial Reports & Intelligence
+            Financial Reports & Summaries
             <Badge variant="outline" size="sm">
-              Deterministic Engine
+              Live Records
             </Badge>
           </h1>
           <p className="text-xs text-brand-700/70 mt-1">
-            Reconciled statements, working capital summaries, and auditable accounting exports.
+            Overview of your cash flow, customer payments, bills, and downloadable spreadsheet reports.
           </p>
         </div>
 
         <Button variant="primary" size="sm" onClick={handleExportCsv}>
           <Download className="w-3.5 h-3.5" />
-          Export Forecast CSV
+          Export Forecast (CSV)
         </Button>
       </div>
 
@@ -96,23 +96,23 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="p-5 space-y-3">
           <span className="text-xs font-semibold uppercase tracking-wider text-brand-700/60 block">
-            Confirmed Income vs Expense
+            Money In vs Money Out
           </span>
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-brand-800">Total Settled Inflow:</span>
+              <span className="text-brand-800">Total Money Received:</span>
               <span className="font-mono font-bold text-success-700">
                 +<CurrencyAmount amount={cashPos?.totalIncome || 0} />
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-brand-800">Total Settled Outflow:</span>
+              <span className="text-brand-800">Total Money Spent:</span>
               <span className="font-mono font-bold text-risk-600">
                 -<CurrencyAmount amount={cashPos?.totalExpense || 0} />
               </span>
             </div>
             <div className="pt-2 border-t border-slateSurface-100 flex items-center justify-between font-bold text-brand-900">
-              <span>Net Settled Operating Flow:</span>
+              <span>Net Profit / Savings:</span>
               <span className="font-mono">
                 <CurrencyAmount amount={(cashPos?.totalIncome || 0) - (cashPos?.totalExpense || 0)} colored showSign />
               </span>
@@ -122,23 +122,23 @@ export default function ReportsPage() {
 
         <Card className="p-5 space-y-3">
           <span className="text-xs font-semibold uppercase tracking-wider text-brand-700/60 block">
-            Working Capital Balances
+            Current Financial Snapshot
           </span>
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-brand-800">Confirmed Cash:</span>
+              <span className="text-brand-800">Cash in Hand & Bank:</span>
               <span className="font-mono font-bold text-forest">
                 <CurrencyAmount amount={cashPos?.currentCash || 0} />
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-brand-800">Open Receivables:</span>
+              <span className="text-brand-800">Unpaid Customer Invoices:</span>
               <span className="font-mono font-bold text-brand-900">
                 <CurrencyAmount amount={recSummary?.totalReceivables || 0} />
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-brand-800">Open Payables:</span>
+              <span className="text-brand-800">Unpaid Supplier Bills:</span>
               <span className="font-mono font-bold text-brand-900">
                 <CurrencyAmount amount={paySummary?.totalPayables || 0} />
               </span>
@@ -148,23 +148,23 @@ export default function ReportsPage() {
 
         <Card className="p-5 space-y-3">
           <span className="text-xs font-semibold uppercase tracking-wider text-brand-700/60 block">
-            30-Day Liquidity Health
+            30-Day Cash Forecast
           </span>
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-brand-800">Minimum Projected Cash:</span>
+              <span className="text-brand-800">Lowest Projected Cash:</span>
               <span className="font-mono font-bold text-risk-600">
                 <CurrencyAmount amount={forecast?.minimumCash || 0} colored />
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-brand-800">First Shortfall Date:</span>
+              <span className="text-brand-800">Next Cash Shortage:</span>
               <span className="font-semibold text-brand-900">
-                {forecast?.firstShortfallDate || "None (Sufficient)"}
+                {forecast?.firstShortfallDate || "None (Safe)"}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-brand-800">Overdue Collections:</span>
+              <span className="text-brand-800">Overdue From Customers:</span>
               <span className="font-mono font-bold text-warning-700">
                 <CurrencyAmount amount={recSummary?.overdueAmount || 0} />
               </span>
@@ -176,7 +176,7 @@ export default function ReportsPage() {
       {/* Aging Schedule Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Accounts Receivable Aging Schedule</CardTitle>
+          <CardTitle className="text-sm">Customer Payment Schedule (By Due Date)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">

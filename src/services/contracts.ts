@@ -14,6 +14,10 @@ import {
   AuditLog,
   Member,
   Role,
+  Product,
+  PosSaleRequest,
+  PosSaleResult,
+  FinancingEligibility,
 } from "@/domain/types";
 import {
   CashPosition,
@@ -87,6 +91,19 @@ export interface DataService {
   getScenarios(): Promise<Scenario[]>;
   createScenario(s: Omit<Scenario, "id" | "createdAt">): Promise<Scenario>;
   simulateScenario(assumptions: any[], days?: number): Promise<ScenarioSimulationResult>;
+
+  // Products & Inventory / Stock
+  getProducts(): Promise<Product[]>;
+  getProductById(id: string): Promise<Product | null>;
+  createProduct(product: Omit<Product, "id" | "createdAt" | "updatedAt">): Promise<Product>;
+  updateProduct(id: string, updates: Partial<Product>): Promise<Product>;
+  deleteProduct(id: string): Promise<boolean>;
+
+  // Point of Sale & Selling Hisab
+  recordPosSale(sale: PosSaleRequest): Promise<PosSaleResult>;
+
+  // SME Financing Matching (Competition Topic E)
+  getFinancingMatches(): Promise<FinancingEligibility>;
 
   // Audit Logs
   getAuditLogs(limit?: number): Promise<AuditLog[]>;

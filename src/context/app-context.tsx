@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { Business, Member, Role, ROLE_PERMISSIONS, PermissionMatrix } from "@/domain/types";
 import { CountryConfig, COUNTRY_CONFIGS, getCountryConfig } from "@/domain/countries";
 import { dataService, authService } from "@/services";
+import { mockStore } from "@/services/mock/store";
 import { getSupabaseClient } from "@/lib/supabase/client";
 
 export type ThemeMode = "light" | "dark" | "system";
@@ -36,7 +37,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [business, setBusiness] = useState<Business | null>(null);
   const [currentMember, setCurrentMember] = useState<Member | null>(null);
   const [currentRole, setCurrentRole] = useState<Role>("Owner");
-  const [countryConfig, setCountryConfig] = useState<CountryConfig>(COUNTRY_CONFIGS.US);
+  const [countryConfig, setCountryConfig] = useState<CountryConfig>(COUNTRY_CONFIGS.CN);
   const [theme, setThemeState] = useState<ThemeMode>("light");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
   const [supabaseUser, setSupabaseUser] = useState<{ id: string; email: string; name: string } | null>(null);
@@ -94,44 +95,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Listen to Supabase auth state
-  useEffect(() => {
-    const supabase = getSupabaseClient();
-
-    const syncUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setSupabaseUser({
-          id: user.id,
-          email: user.email ?? "",
-          name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "User",
-        });
-        setIsAuthenticated(true);
-      } else {
-        setSupabaseUser(null);
-        setIsAuthenticated(false);
-      }
-    };
-
-    syncUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
-      if (session?.user) {
-        setSupabaseUser({
-          id: session.user.id,
-          email: session.user.email ?? "",
-          name: session.user.user_metadata?.full_name ?? session.user.email?.split("@")[0] ?? "User",
-        });
-        setIsAuthenticated(true);
-      } else {
-        setSupabaseUser(null);
-        setIsAuthenticated(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
   const loadAppState = useCallback(async () => {
     try {
       const [biz, member] = await Promise.all([
@@ -146,6 +109,68 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       console.error("Failed to load initial app context:", err);
     }
   }, []);
+
+  // Listen to Supabase auth state
+  useEffect(() => {
+    const supabase = getSupabaseClient();
+
+    const syncUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const u = {
+          id: user.id,
+          email: user.email ?? "",
+          name: user.user_metadata?.full_name ?? user.email?.split("@")[0] ?? "User",
+        };
+        setSupabaseUser(u);
+        setIsAuthenticated(true);
+
+        const currentState = mockStore.getState();
+        if (
+          currentState.business.name.includes("Harbor & Pine") ||
+          currentState.currentMemberId !== user.id ||
+          currentState.business.openingCashBalance === 1500000 ||
+          currentState.transactions.some((t: any) => t.id === "tx-seed-1")
+        ) {
+          mockStore.initializeFreshUserWorkspace(u);
+          loadAppState();
+        }
+      } else {
+        setSupabaseUser(null);
+        setIsAuthenticated(false);
+      }
+    };
+
+    syncUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+      if (session?.user) {
+        const u = {
+          id: session.user.id,
+          email: session.user.email ?? "",
+          name: session.user.user_metadata?.full_name ?? session.user.email?.split("@")[0] ?? "User",
+        };
+        setSupabaseUser(u);
+        setIsAuthenticated(true);
+
+        const currentState = mockStore.getState();
+        if (
+          currentState.business.name.includes("Harbor & Pine") ||
+          currentState.currentMemberId !== session.user.id ||
+          currentState.business.openingCashBalance === 1500000 ||
+          currentState.transactions.some((t: any) => t.id === "tx-seed-1")
+        ) {
+          mockStore.initializeFreshUserWorkspace(u);
+          loadAppState();
+        }
+      } else {
+        setSupabaseUser(null);
+        setIsAuthenticated(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [loadAppState]);
 
   useEffect(() => {
     loadAppState();

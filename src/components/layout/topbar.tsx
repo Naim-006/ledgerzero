@@ -28,6 +28,9 @@ import {
   History,
   ShieldCheck,
   Settings,
+  ShoppingCart,
+  Boxes,
+  Banknote,
 } from "lucide-react";
 
 export function Topbar() {
@@ -48,6 +51,7 @@ export function Topbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const localePresets = [
+    { code: "CN", label: "CNY (¥) — China (RMB)" },
     { code: "US", label: "USD ($) — United States" },
     { code: "EU", label: "EUR (€) — Eurozone" },
     { code: "GB", label: "GBP (£) — United Kingdom" },
@@ -56,18 +60,14 @@ export function Topbar() {
   ];
 
   const mobileNavLinks = [
-    { name: "Overview", href: "/", icon: LayoutDashboard },
-    { name: "AI Assistant", href: "/ai-workspace", icon: Bot },
+    { name: "Shop Overview", href: "/", icon: LayoutDashboard },
+    { name: "POS Sell Register", href: "/pos", icon: ShoppingCart },
+    { name: "Product Stock", href: "/inventory", icon: Boxes },
+    { name: "Money In & Out", href: "/transactions", icon: Receipt },
+    { name: "Bills & Invoices", href: "/invoices", icon: FileText },
+    { name: "Cash Flow & Forecast", href: "/cash-flow", icon: TrendingUp },
+    { name: "Business Financing", href: "/financing", icon: Banknote },
     { name: "Pending Approvals", href: "/action-center", icon: CheckSquare },
-    { name: "Cash Flow & Forecasts", href: "/cash-flow", icon: TrendingUp },
-    { name: "Transactions", href: "/transactions", icon: Receipt },
-    { name: "Invoices", href: "/invoices", icon: FileText },
-    { name: "Customers & Receivables", href: "/receivables", icon: Users },
-    { name: "Suppliers & Payables", href: "/payables", icon: Building2 },
-    { name: "Budgets", href: "/budgets", icon: PieChart },
-    { name: "Reports & Insights", href: "/reports", icon: BarChart3 },
-    { name: "Activity Log", href: "/audit-logs", icon: History },
-    { name: "Team & Permissions", href: "/team", icon: ShieldCheck },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
 
@@ -123,7 +123,7 @@ export function Topbar() {
               }}
               className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-foreground bg-surface-subtle border border-border rounded-lg hover:bg-border/30 transition-colors"
             >
-              <span>{countryConfig?.defaultCurrency || "USD"}</span>
+              <span>{countryConfig?.defaultCurrency || "CNY"}</span>
               <ChevronDown className="w-3 h-3 text-text-dim" />
             </button>
 

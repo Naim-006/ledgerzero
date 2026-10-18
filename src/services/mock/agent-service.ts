@@ -195,7 +195,20 @@ export class MockAgentService implements AgentService {
       toolArgs: {},
     });
     const overdueInvoices = await mockDataService.getInvoices({ status: "overdue" });
-    const apexInvoice = overdueInvoices.find((i) => i.counterpartyName.includes("Apex")) || overdueInvoices[0];
+    const apexInvoice = overdueInvoices.find((i) => i.counterpartyName?.includes("Apex")) || overdueInvoices[0];
+
+    if (!apexInvoice) {
+      await emitEvent("tool_call_result", "No overdue receivables found in ledger.", {
+        toolName: "list_overdue_receivables",
+        toolResult: [],
+      });
+      await emitEvent("plan_created", "Ledger is clean: No overdue invoices or impending cash shortfalls detected.", {
+        steps: ["Assess cash flow", "No intervention needed"],
+      });
+      run.status = "completed";
+      return run;
+    }
+
     await emitEvent("tool_call_result", `Found overdue receivable: ${apexInvoice.counterpartyName} (${apexInvoice.invoiceNumber}) owes $15,000.00 (6 days overdue).`, {
       toolName: "list_overdue_receivables",
       toolResult: overdueInvoices,
