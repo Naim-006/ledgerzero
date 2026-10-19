@@ -204,9 +204,12 @@ Respond in friendly, natural language. If the user writes in Chinese, answer in 
       }
     }
 
-    // 5. Groq Fast Llama (Llama 3.1 8B Instant primary, with 3.3 70B fallback)
+    // 5. Groq LPU (Qwen 3.8 / GPT-OSS / Llama)
     if (provider === "groq") {
       const modelsToTry = [
+        "qwen/qwen3.8-27b",
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
         "llama-3.1-8b-instant",
         "llama-3.3-70b-versatile",
       ];

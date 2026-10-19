@@ -597,7 +597,7 @@ export default function AdminPortalPage() {
                     className="w-full px-3 py-2.5 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
                   >
                     <option value="auto">Auto-Detect from API Key (Recommended)</option>
-                    <option value="groq">Groq Cloud (Llama 3.1 8B Instant - gsk_...)</option>
+                    <option value="groq">Groq LPU (Qwen 3.8 / GPT-OSS - gsk_...)</option>
                     <option value="deepseek">DeepSeek (深度求索 - deepseek-chat)</option>
                     <option value="glm">GLM (智谱 AI - glm-4-flash)</option>
                     <option value="qwen">Qwen (通义千问 - qwen-plus)</option>
