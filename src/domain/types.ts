@@ -495,6 +495,7 @@ export type Product = z.infer<typeof ProductSchema>;
 export interface PosSaleItem {
   productId: string;
   name: string;
+  sku?: string;
   quantity: number;
   unitPrice: number; // minor units
   subtotal: number; // minor units

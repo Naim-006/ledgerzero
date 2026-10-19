@@ -202,7 +202,7 @@ Tap any quick action below to run it now:`,
 
       const saleItem: PosSaleItem = {
         productId: targetProduct.id,
-        productName: targetProduct.name,
+        name: targetProduct.name,
         sku: targetProduct.sku,
         unitPrice: targetProduct.unitPrice,
         quantity: qty,

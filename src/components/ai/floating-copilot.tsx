@@ -114,8 +114,8 @@ Tap any quick action to run it immediately, or enter an API key for custom open-
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     refreshContext();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   useEffect(() => {
