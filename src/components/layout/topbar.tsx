@@ -115,6 +115,17 @@ export function Topbar() {
 
         {/* Right: Currency Selector, Theme Toggle & User Profile */}
         <div className="flex items-center gap-2">
+          {/* AI Copilot Quick Trigger */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("open-ai-copilot"))}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-950 dark:bg-emerald-950 text-lime-accent border border-emerald-700/60 hover:bg-forest-action hover:text-white transition-all shadow-xs"
+            title="Ask AI Assistant"
+            aria-label="Ask AI Assistant"
+          >
+            <Bot className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">AI Copilot</span>
+          </button>
+
           {/* Currency / Region Dropdown */}
           <div className="relative">
             <button

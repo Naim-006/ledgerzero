@@ -25,6 +25,7 @@ import {
   Phone,
   Clock,
   Sparkles,
+  Bot,
 } from "lucide-react";
 import { useApp } from "@/context/app-context";
 import { dataService } from "@/services";
@@ -302,6 +303,18 @@ export default function PosPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => window.dispatchEvent(new CustomEvent("open-ai-copilot"))}
+            className="gap-1.5 text-xs bg-emerald-950/10 text-emerald-700 dark:text-emerald-300 border-emerald-600/30 hover:bg-emerald-600/10"
+            title="Ask AI Assistant"
+          >
+            <Bot className="w-4 h-4 text-forest-action" />
+            <span className="hidden sm:inline">AI Assistant</span>
+          </Button>
+
           <Link href="/inventory">
             <Button variant="outline" size="sm" className="gap-2 text-xs">
               <Boxes className="w-4 h-4" />

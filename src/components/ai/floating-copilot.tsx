@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useApp } from "@/context/app-context";
 import { dataService } from "@/services";
 import {
@@ -33,6 +33,8 @@ interface ChatMessage {
 
 export function FloatingCopilot() {
   const router = useRouter();
+  const pathname = usePathname();
+  const isPosPage = pathname === "/pos";
   const { business, activeCurrency } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -40,6 +42,13 @@ export function FloatingCopilot() {
   const [quickApiKey, setQuickApiKey] = useState("");
   const [isSavingKey, setIsSavingKey] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
+
+  // Listen for open-ai-copilot events from topbar or header buttons
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener("open-ai-copilot", handleOpen);
+    return () => window.removeEventListener("open-ai-copilot", handleOpen);
+  }, []);
 
   const [contextData, setContextData] = useState<{
     cash: number;
@@ -278,12 +287,27 @@ Your AI assistant is now active and querying with live business context. How can
 
   return (
     <>
-      {/* Floating Trigger Button */}
-      {!isOpen && (
+      {/* Floating Trigger Button (Hidden on /pos to prevent overlapping register checkout controls) */}
+      {!isOpen && !isPosPage && (
         <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-3">
+          {/* Mobile: Compact circular FAB so it doesn't block wide content */}
           <button
             onClick={() => setIsOpen(true)}
-            className="group flex items-center gap-2.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-full bg-emerald-950 dark:bg-emerald-950 text-lime-accent hover:bg-forest-action hover:text-white font-bold text-xs shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-emerald-700/60"
+            className="sm:hidden w-11 h-11 rounded-full bg-emerald-950 dark:bg-emerald-950 text-lime-accent hover:bg-forest-action hover:text-white flex items-center justify-center shadow-xl border border-emerald-700/60 transition-all active:scale-95"
+            aria-label="Ask AI Assistant"
+            title="Ask AI Assistant"
+          >
+            <div className="relative">
+              <Bot className="w-5 h-5 text-lime-accent" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400" />
+            </div>
+          </button>
+
+          {/* Desktop: Pill button */}
+          <button
+            onClick={() => setIsOpen(true)}
+            className="hidden sm:flex group items-center gap-2.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-full bg-emerald-950 dark:bg-emerald-950 text-lime-accent hover:bg-forest-action hover:text-white font-bold text-xs shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-emerald-700/60"
           >
             <div className="relative">
               <Bot className="w-5 h-5 text-lime-accent group-hover:text-white transition-colors" />
