@@ -83,7 +83,7 @@ function SignInContent() {
             </div>
             <div>
               <div className="font-bold text-white text-lg tracking-tight">LEDGER ZERO</div>
-              <div className="text-lime-accent/60 text-xs font-medium">Financial Operating System</div>
+              <div className="text-white text-xs font-medium">Financial Operating System</div>
             </div>
           </div>
         </div>

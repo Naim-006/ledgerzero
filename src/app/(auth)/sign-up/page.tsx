@@ -88,7 +88,7 @@ export default function SignUpPage() {
             </div>
             <div>
               <div className="font-bold text-white text-lg tracking-tight">LEDGER ZERO</div>
-              <div className="text-lime-accent/60 text-xs font-medium">Financial Management</div>
+              <div className="text-white text-xs font-medium">Financial Management</div>
             </div>
           </div>
         </div>
@@ -177,7 +177,7 @@ export default function SignUpPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input
-                    label="Shop / Business Name (Optional)"
+                    label="Shop Name (Optional)"
                     id="businessName"
                     placeholder="e.g. Apex Hardware"
                     value={businessName}
