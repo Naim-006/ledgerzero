@@ -1228,7 +1228,7 @@ export class SupabaseDataService implements DataService {
   }
 
   // ==========================================
-  // Point of Sale & Selling Hisab Settlement
+  // Point of Sale & Sales Register Settlement
   // ==========================================
 
   async recordPosSale(sale: PosSaleRequest): Promise<PosSaleResult> {
@@ -1447,7 +1447,7 @@ export class SupabaseDataService implements DataService {
           matchScore: 90,
           qualificationStatus: "eligible",
           keyBenefits: [
-            "Flexible revolving credit based on POS sales volume & hisab",
+            "Flexible revolving credit based on POS sales volume & ledger",
             "Draw down funds only when needed for supplier payments",
             "Automatic repayment deduction from daily sales",
           ],
@@ -1484,7 +1484,7 @@ export class SupabaseDataService implements DataService {
           qualificationStatus: "conditionally_eligible",
           keyBenefits: [
             "Fixed monthly installment for shop expansion, renovation & equipment",
-            "100% digital paperless verification via automated accounting hisab",
+            "100% digital paperless verification via automated accounting records",
             "Early repayment allowed with zero penalty",
           ],
           disbursementTimeframe: "Same Day",

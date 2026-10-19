@@ -69,6 +69,7 @@ export function Topbar() {
     { name: "Business Financing", href: "/financing", icon: Banknote },
     { name: "Pending Approvals", href: "/action-center", icon: CheckSquare },
     { name: "Settings", href: "/settings", icon: Settings },
+    { name: "Admin Console", href: "/admin", icon: ShieldCheck },
   ];
 
   const displayName =
@@ -81,20 +82,20 @@ export function Topbar() {
 
   return (
     <>
-      <header className="h-14 bg-surface border-b border-border px-4 sm:px-6 flex items-center justify-between shrink-0 select-none z-20">
+      <header className="h-14 bg-surface border-b border-border px-3 sm:px-6 flex items-center justify-between shrink-0 select-none z-20">
         {/* Left: Mobile Toggle + Business Name */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-1.5 text-text-dim hover:text-foreground rounded-lg hover:bg-surface-subtle"
+            className="lg:hidden p-1.5 text-text-dim hover:text-foreground rounded-lg hover:bg-surface-subtle shrink-0"
             aria-label="Toggle Navigation Menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-surface-subtle text-foreground border border-border/60">
-            <Building className="w-3.5 h-3.5 text-forest-action" />
-            <span className="text-xs font-semibold tracking-tight">
+          <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-surface-subtle text-foreground border border-border/60 max-w-[130px] sm:max-w-[220px] truncate">
+            <Building className="w-3.5 h-3.5 text-forest-action shrink-0" />
+            <span className="text-xs font-semibold tracking-tight truncate">
               {business?.name || "My Business"}
             </span>
           </div>
@@ -239,14 +240,15 @@ export function Topbar() {
           <div className="relative w-72 max-w-[80vw] bg-surface border-r border-border h-full flex flex-col p-4 shadow-2xl z-10">
             <div className="flex items-center justify-between pb-4 border-b border-border">
               <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-forest flex items-center justify-center text-lime-accent font-black text-sm">
+                <div className="w-7 h-7 rounded-lg bg-emerald-950 dark:bg-emerald-950 border border-emerald-700/60 flex items-center justify-center text-lime-accent font-black text-sm">
                   Ø
                 </div>
                 <span className="font-bold text-sm text-foreground">LEDGER ZERO</span>
               </div>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-1 rounded-lg text-text-dim hover:text-foreground"
+                className="p-1.5 rounded-lg text-text-dim hover:text-foreground hover:bg-surface-subtle"
+                aria-label="Close Navigation Menu"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -264,16 +266,44 @@ export function Topbar() {
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                       isActive
-                        ? "bg-forest-action/10 text-forest-action font-semibold"
+                        ? "bg-forest-action/10 text-forest-action font-semibold dark:bg-forest-action/20"
                         : "text-foreground/80 hover:bg-surface-subtle"
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
-                    {item.name}
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span>{item.name}</span>
                   </Link>
                 );
               })}
             </nav>
+
+            {/* Mobile Drawer Footer Controls */}
+            <div className="pt-3 border-t border-border space-y-2">
+              <div className="flex items-center justify-between px-2">
+                <span className="text-xs text-text-dim">Theme</span>
+                <button
+                  onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg bg-surface-subtle border border-border text-foreground hover:bg-border/30 transition-colors"
+                >
+                  {resolvedTheme === "dark" ? (
+                    <>
+                      <Sun className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Light Mode</span>
+                    </>
+                  ) : (
+                    <>
+                      <Moon className="w-3.5 h-3.5 text-slate-700" />
+                      <span>Dark Mode</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between px-2 text-[11px] text-text-dim">
+                <span>Currency</span>
+                <span className="font-mono font-bold text-foreground">{countryConfig?.defaultCurrency || "CNY"}</span>
+              </div>
+            </div>
           </div>
         </div>
       )}

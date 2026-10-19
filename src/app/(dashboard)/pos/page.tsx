@@ -292,12 +292,13 @@ export default function PosPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-emerald-500/10 text-emerald-600 rounded-lg">
+            <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
               <ShoppingCart className="w-5 h-5" />
             </div>
             <h1 className="text-xl font-bold text-foreground">Point of Sale (POS) Cashier Register</h1>
-            <Badge variant="outline" className="bg-emerald-500/5 text-emerald-600 border-emerald-500/20 text-xs">
-              Live Hisab & Stock Sync
+            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block mr-1" />
+              Live Sync
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
@@ -315,7 +316,7 @@ export default function PosPage() {
           <Button
             size="sm"
             onClick={() => setIsNewProductModalOpen(true)}
-            className="gap-2 bg-forest hover:bg-forest/90 text-white text-xs"
+            className="gap-2 bg-forest-action hover:bg-forest-actionHover text-white text-xs"
           >
             <Plus className="w-4 h-4" />
             Add Product
@@ -323,7 +324,7 @@ export default function PosPage() {
         </div>
       </div>
 
-      {/* Main POS Layout: 2 Columns (Catalog on Left, Hisab Cart on Right) */}
+      {/* Main POS Layout: 2 Columns (Catalog on Left, Cart on Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Product Catalog (7 or 8 cols) */}
         <div className="lg:col-span-7 xl:col-span-8 space-y-4">
@@ -348,8 +349,8 @@ export default function PosPage() {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
                   selectedCategory === cat
-                    ? "bg-forest text-white"
-                    : "bg-surface hover:bg-surface-elevated text-muted-foreground border border-border"
+                    ? "bg-forest-action text-white"
+                    : "bg-surface hover:bg-surface-subtle text-foreground/80 border border-border"
                 }`}
               >
                 {cat}
@@ -454,11 +455,11 @@ export default function PosPage() {
                       </div>
 
                       {currentCartQty > 0 ? (
-                        <div className="w-6 h-6 rounded-full bg-forest text-white text-xs font-bold flex items-center justify-center shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-forest-action text-white text-xs font-bold flex items-center justify-center shrink-0">
                           {currentCartQty}
                         </div>
                       ) : (
-                        <div className="w-6 h-6 rounded-full bg-surface-elevated text-muted-foreground group-hover:bg-forest group-hover:text-white transition-colors flex items-center justify-center shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-surface-subtle text-text-dim group-hover:bg-forest-action group-hover:text-white transition-colors flex items-center justify-center shrink-0 border border-border">
                           <Plus className="w-3.5 h-3.5" />
                         </div>
                       )}
@@ -470,15 +471,15 @@ export default function PosPage() {
           )}
         </div>
 
-        {/* Right Column: Active Selling Hisab Cart (5 or 4 cols) */}
-        <div className="lg:col-span-5 xl:col-span-4">
+        {/* Right Column: Active Sale Cart (5 or 4 cols) */}
+        <div id="pos-cart-panel" className="lg:col-span-5 xl:col-span-4 scroll-mt-20">
           <Card className="p-4 bg-surface border-border sticky top-4 shadow-sm flex flex-col space-y-4">
             {/* Cart Header */}
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <div className="flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-forest" />
-                <h3 className="font-bold text-sm text-foreground">Selling Hisab Register</h3>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-forest/10 text-forest font-semibold">
+                <Receipt className="w-4 h-4 text-forest-action" />
+                <h3 className="font-bold text-sm text-foreground">Active Sale Register</h3>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-forest-action/10 text-forest-action font-semibold">
                   {cart.reduce((s, i) => s + i.quantity, 0)} items
                 </span>
               </div>
@@ -649,13 +650,13 @@ export default function PosPage() {
               size="lg"
               onClick={handleCompleteSale}
               disabled={cart.length === 0 || submitting}
-              className="w-full bg-forest hover:bg-forest/90 text-white font-bold text-sm shadow-md transition-all active:scale-[0.99] gap-2"
+              className="w-full bg-forest-action hover:bg-forest-actionHover text-white font-bold text-sm shadow-md transition-all active:scale-[0.99] gap-2"
             >
               {submitting ? (
                 <>Processing Sale & Deducting Stock...</>
               ) : (
                 <>
-                  <CheckCircle2 className="w-4 h-4 text-lime-accent" />
+                  <CheckCircle2 className="w-4 h-4 text-white" />
                   Complete Sale & Print Receipt ({formatMoney(grandTotal)})
                 </>
               )}
@@ -790,7 +791,7 @@ export default function PosPage() {
 
               <Button
                 onClick={() => setIsReceiptModalOpen(false)}
-                className="bg-forest hover:bg-forest/90 text-white text-xs w-full sm:w-auto"
+                className="bg-forest-action hover:bg-forest-actionHover text-white text-xs w-full sm:w-auto"
               >
                 Start Next Sale
               </Button>
@@ -898,12 +899,36 @@ export default function PosPage() {
             >
               Cancel
             </Button>
-            <Button type="submit" size="sm" className="bg-forest text-white">
+            <Button type="submit" size="sm" className="bg-forest-action hover:bg-forest-actionHover text-white">
               Save Product
             </Button>
           </div>
         </form>
       </Modal>
+
+      {/* Mobile Sticky Cart & Quick Checkout Bar */}
+      {cart.length > 0 && (
+        <div className="lg:hidden fixed bottom-4 inset-x-4 z-30 bg-surface/95 border border-forest-action/40 p-3 rounded-2xl shadow-2xl flex items-center justify-between backdrop-blur-md">
+          <div className="min-w-0">
+            <div className="text-[11px] text-text-dim">
+              {cart.reduce((s, i) => s + i.quantity, 0)} items in sale
+            </div>
+            <div className="text-base font-extrabold text-foreground tabular-nums">
+              {formatMoney(grandTotal)}
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              const cartElem = document.getElementById("pos-cart-panel");
+              cartElem?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="px-4 py-2 bg-forest-action hover:bg-forest-actionHover text-white text-xs font-bold rounded-xl shadow flex items-center gap-1.5 transition-all active:scale-95"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            <span>Go to Checkout</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

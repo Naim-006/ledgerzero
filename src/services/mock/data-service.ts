@@ -694,7 +694,7 @@ export class MockDataService implements DataService {
           qualificationStatus: "conditionally_eligible",
           keyBenefits: [
             "Fixed monthly installment for business expansion & equipment",
-            "100% digital paperless verification via accounting hisab",
+            "100% digital paperless verification via automated accounting",
             "Early repayment with zero prepayment penalty",
           ],
           disbursementTimeframe: "Same Day",

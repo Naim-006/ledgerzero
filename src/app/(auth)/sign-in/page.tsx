@@ -122,10 +122,10 @@ function SignInContent() {
       <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-10">
         {/* Mobile brand header */}
         <div className="lg:hidden flex items-center gap-2.5 mb-8">
-          <div className="w-9 h-9 rounded-xl bg-forest flex items-center justify-center font-black text-lg text-lime-accent shadow">
+          <div className="w-9 h-9 rounded-xl bg-emerald-950 dark:bg-emerald-950 border border-emerald-700/60 flex items-center justify-center font-black text-lg text-lime-accent shadow">
             Ø
           </div>
-          <span className="font-bold text-forest text-lg">LEDGER ZERO</span>
+          <span className="font-bold text-foreground text-lg">LEDGER ZERO</span>
         </div>
 
         <div className="w-full max-w-sm space-y-5">

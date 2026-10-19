@@ -13,9 +13,15 @@ const config: Config = {
     extend: {
       colors: {
         background: "var(--background)",
+        foreground: "var(--foreground)",
         surface: "var(--surface)",
+        "surface-subtle": "var(--surface-subtle)",
         surfaceSubtle: "var(--surface-subtle)",
+        border: "var(--border)",
+        "border-subtle": "var(--border-subtle)",
         borderCustom: "var(--border)",
+        "text-muted": "var(--text-muted)",
+        "text-dim": "var(--text-dim)",
         brand: {
           50: "var(--surface-subtle)",
           100: "var(--surface-subtle)",
@@ -30,7 +36,7 @@ const config: Config = {
           950: "var(--background)",
         },
         forest: {
-          DEFAULT: "var(--foreground)",
+          DEFAULT: "var(--forest)",
           dark: "var(--background)",
           light: "var(--surface-subtle)",
           action: "var(--forest-action)",

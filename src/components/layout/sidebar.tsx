@@ -79,6 +79,7 @@ export function Sidebar() {
           badge: pendingApprovalsCount,
         },
         { name: "Settings", href: "/settings", icon: Settings },
+        { name: "Admin Console", href: "/admin", icon: ShieldCheck },
       ],
     },
   ];
@@ -87,7 +88,7 @@ export function Sidebar() {
     <aside className="w-64 bg-surface border-r border-border flex flex-col shrink-0 select-none">
       {/* Brand Header */}
       <div className="h-14 px-5 border-b border-border flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-forest flex items-center justify-center text-lime-accent font-black text-base shadow-xs shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-emerald-950 dark:bg-emerald-950 border border-emerald-700/60 flex items-center justify-center text-lime-accent font-black text-base shadow-xs shrink-0">
           Ø
         </div>
         <div>

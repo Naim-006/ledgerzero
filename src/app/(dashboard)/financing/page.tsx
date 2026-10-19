@@ -103,23 +103,23 @@ export default function FinancingPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-emerald-500/10 text-emerald-600 rounded-lg">
+            <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
               <Banknote className="w-5 h-5" />
             </div>
             <h1 className="text-xl font-bold text-foreground">SME Financing & Capital Matching</h1>
-            <Badge variant="outline" className="bg-emerald-500/5 text-emerald-600 border-emerald-500/20 text-xs">
+            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs">
               AI Credit Copilot (Topic E)
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Data-backed financing options matched to your shop&apos;s real cash flow velocity, verified receivables hisab, and stock inventory valuation.
+            Data-backed financing options matched to your shop&apos;s real cash flow velocity, verified receivables, and stock inventory valuation.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Link href="/cash-flow">
             <Button variant="outline" size="sm" className="gap-2 text-xs">
-              <Sliders className="w-4 h-4 text-forest" />
+              <Sliders className="w-4 h-4 text-forest-action" />
               Simulate in Cash Flow
             </Button>
           </Link>
@@ -134,7 +134,7 @@ export default function FinancingPage() {
               <span>Creditworthiness Score</span>
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
             </div>
-            <div className="text-2xl font-black text-emerald-600 mt-1">
+            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
               {eligibility.overallHealthScore} / 100
             </div>
             <div className="text-[11px] text-muted-foreground mt-1">
@@ -301,7 +301,7 @@ export default function FinancingPage() {
                     <Button
                       size="sm"
                       onClick={() => handleOpenApplyModal(opt)}
-                      className="bg-forest hover:bg-forest/90 text-white text-xs gap-1.5 shadow-xs"
+                      className="bg-forest-action hover:bg-forest-actionHover text-white text-xs gap-1.5 shadow-xs"
                     >
                       Apply / Pre-Qualify
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -323,7 +323,7 @@ export default function FinancingPage() {
         >
           {actionSuccess ? (
             <div className="text-center py-6 space-y-4">
-              <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div>
@@ -334,7 +334,7 @@ export default function FinancingPage() {
               </div>
               <div className="flex justify-center gap-2 pt-2">
                 <Link href="/action-center">
-                  <Button size="sm" className="bg-forest text-white text-xs gap-1.5">
+                  <Button size="sm" className="bg-forest-action hover:bg-forest-actionHover text-white text-xs gap-1.5">
                     Review in Action Center
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Button>
@@ -414,7 +414,7 @@ export default function FinancingPage() {
                   type="submit"
                   size="sm"
                   disabled={submitting}
-                  className="bg-forest text-white"
+                  className="bg-forest-action hover:bg-forest-actionHover text-white"
                 >
                   {submitting ? "Submitting Request..." : "Submit for Owner Approval"}
                 </Button>

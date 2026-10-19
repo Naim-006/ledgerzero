@@ -216,7 +216,7 @@ export default function InventoryPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-forest/10 text-forest rounded-lg">
+            <div className="p-2 bg-forest-action/10 text-forest-action rounded-lg">
               <Boxes className="w-5 h-5" />
             </div>
             <h1 className="text-xl font-bold text-foreground">Stock & Inventory Management</h1>
@@ -232,14 +232,14 @@ export default function InventoryPage() {
         <div className="flex items-center gap-2.5">
           <Link href="/pos">
             <Button variant="outline" size="sm" className="gap-2 text-xs">
-              <ShoppingCart className="w-4 h-4 text-emerald-600" />
+              <ShoppingCart className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               Open POS Register
             </Button>
           </Link>
           <Button
             size="sm"
             onClick={handleOpenAddModal}
-            className="gap-2 bg-forest hover:bg-forest/90 text-white text-xs"
+            className="gap-2 bg-forest-action hover:bg-forest-actionHover text-white text-xs"
           >
             <Plus className="w-4 h-4" />
             Add New Product
@@ -620,7 +620,7 @@ export default function InventoryPage() {
             >
               Cancel
             </Button>
-            <Button type="submit" size="sm" className="bg-forest text-white">
+            <Button type="submit" size="sm" className="bg-forest-action hover:bg-forest-actionHover text-white">
               {editingProduct ? "Update Product" : "Save to Inventory"}
             </Button>
           </div>
@@ -681,7 +681,7 @@ export default function InventoryPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" className="bg-forest text-white">
+              <Button type="submit" size="sm" className="bg-forest-action hover:bg-forest-actionHover text-white">
                 Confirm Adjustment
               </Button>
             </div>

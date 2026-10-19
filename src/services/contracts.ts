@@ -99,7 +99,7 @@ export interface DataService {
   updateProduct(id: string, updates: Partial<Product>): Promise<Product>;
   deleteProduct(id: string): Promise<boolean>;
 
-  // Point of Sale & Selling Hisab
+  // Point of Sale & Sales Register
   recordPosSale(sale: PosSaleRequest): Promise<PosSaleResult>;
 
   // SME Financing Matching (Competition Topic E)

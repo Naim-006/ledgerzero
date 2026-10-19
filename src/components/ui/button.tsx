@@ -27,15 +27,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       primary:
         "bg-forest-action text-white hover:bg-forest-actionHover focus:ring-forest shadow-sm",
       secondary:
-        "bg-slateSurface-100 text-forest hover:bg-slateSurface-200 focus:ring-brand-300",
+        "bg-surface-subtle text-foreground hover:bg-border/40 focus:ring-brand-300 border border-border/60",
       outline:
-        "border border-slateSurface-300 text-forest bg-transparent hover:bg-slateSurface-100 focus:ring-brand-300",
+        "border border-border text-foreground bg-transparent hover:bg-surface-subtle focus:ring-brand-300",
       danger:
         "bg-risk-500 text-white hover:bg-risk-600 focus:ring-risk-500 shadow-sm",
       ghost:
-        "text-forest hover:bg-slateSurface-100 focus:ring-brand-200",
+        "text-foreground hover:bg-surface-subtle focus:ring-brand-200",
       lime:
-        "bg-lime-accent text-forest font-semibold hover:bg-lime-accentHover focus:ring-lime-accent shadow-sm",
+        "bg-lime-accent text-slate-950 font-bold hover:bg-lime-accentHover focus:ring-lime-accent shadow-sm",
     };
 
     const sizeStyles = {

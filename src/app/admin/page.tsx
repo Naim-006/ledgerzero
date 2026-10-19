@@ -50,7 +50,7 @@ export default function AdminPortalPage() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [aiAgentEnabled, setAiAgentEnabled] = useState(true);
   const [aiSystemPrompt, setAiSystemPrompt] = useState(
-    "You are LEDGER ZERO AI, an autonomous financial co-pilot and business agent for small businesses (中小企业智能金融助手). You analyze cash positions, sales hisab, inventory stock, invoices, and working capital in Chinese Yuan (CNY / ¥)."
+    "You are LEDGER ZERO AI, an autonomous financial co-pilot and business agent for small businesses (中小企业智能金融助手). You analyze cash positions, sales ledger, inventory stock, invoices, and working capital in Chinese Yuan (CNY / ¥)."
   );
   const [isSavingAI, setIsSavingAI] = useState(false);
   const [aiSaveSuccess, setAiSaveSuccess] = useState(false);
@@ -437,32 +437,33 @@ export default function AdminPortalPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       {/* Top Header */}
-      <header className="h-16 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between shrink-0 sticky top-0 z-30">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-sm shadow">
+      <header className="h-16 bg-slate-900 border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between shrink-0 sticky top-0 z-30">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-sm shadow shrink-0">
             Ø
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-sm tracking-tight text-white">LEDGER ZERO</span>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
-                Admin Console
+              <span className="font-bold text-sm tracking-tight text-white truncate">LEDGER ZERO</span>
+              <span className="hidden xs:inline-block px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold shrink-0">
+                Admin
               </span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950 border border-slate-800 text-xs">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950 border border-slate-800 text-xs">
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-slate-300 text-[11px]">Database Online</span>
           </div>
 
           <Link
             href="/"
-            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition-colors"
+            className="px-2.5 sm:px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-1.5 transition-colors"
+            title="Open Main Shop"
           >
-            <span>Open Shop</span>
+            <span className="hidden sm:inline">Open Shop</span>
             <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
           </Link>
 
@@ -536,7 +537,7 @@ export default function AdminPortalPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+        <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto scrollbar-none flex-nowrap">
           {[
             { id: "ai", label: "AI Intelligence & API Key", icon: Key },
             { id: "businesses", label: "Shops & Businesses", icon: Building },
@@ -549,13 +550,13 @@ export default function AdminPortalPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl transition-all ${
+                className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs font-semibold rounded-xl transition-all whitespace-nowrap shrink-0 ${
                   isActive
                     ? "bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-950"
                     : "text-slate-400 hover:text-white hover:bg-slate-900"
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="w-3.5 h-3.5 shrink-0" />
                 <span>{tab.label}</span>
               </button>
             );
@@ -618,15 +619,15 @@ export default function AdminPortalPage() {
               </div>
 
               {hasSavedKey && (
-                <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-emerald-900/60 text-xs">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 rounded-xl bg-slate-950 border border-emerald-900/60 text-xs gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
                     <span className="text-slate-300 font-medium">Active Key Saved in System:</span>
-                    <code className="text-emerald-400 font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800">
+                    <code className="text-emerald-400 font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 break-all">
                       {maskedSavedKey}
                     </code>
                   </div>
-                  <span className="text-[11px] text-slate-400">Ready to Test</span>
+                  <span className="text-[11px] text-slate-400 shrink-0">Ready to Test</span>
                 </div>
               )}
 
@@ -675,12 +676,12 @@ export default function AdminPortalPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-2 flex flex-wrap items-center gap-3">
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <button
                   type="button"
                   onClick={handleSaveAISettings}
                   disabled={isSavingAI}
-                  className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl flex items-center gap-2 transition-all shadow-md shadow-emerald-500/20"
+                  className="w-full sm:w-auto justify-center px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl flex items-center gap-2 transition-all shadow-md shadow-emerald-500/20"
                 >
                   <Save className="w-4 h-4" />
                   {isSavingAI ? "Saving..." : "Save AI Key"}
@@ -690,7 +691,7 @@ export default function AdminPortalPage() {
                   type="button"
                   onClick={handleTestAI}
                   disabled={isTestingAI}
-                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs rounded-xl border border-slate-700 flex items-center gap-2 transition-colors"
+                  className="w-full sm:w-auto justify-center px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs rounded-xl border border-slate-700 flex items-center gap-2 transition-colors"
                 >
                   <Play className="w-3.5 h-3.5 text-emerald-400" />
                   {isTestingAI ? "Testing Connection..." : "Test Connection"}
@@ -737,8 +738,8 @@ export default function AdminPortalPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto border border-slate-800 rounded-xl">
-              <table className="w-full text-left text-xs text-slate-300">
+            <div className="overflow-x-auto border border-slate-800 rounded-xl scrollbar-thin">
+              <table className="w-full text-left text-xs text-slate-300 min-w-[540px]">
                 <thead className="bg-slate-950 border-b border-slate-800 text-slate-400 font-semibold">
                   <tr>
                     <th className="p-3">Shop Name</th>
@@ -791,8 +792,8 @@ export default function AdminPortalPage() {
               <p className="text-xs text-slate-400">Authenticated user accounts and access roles</p>
             </div>
 
-            <div className="overflow-x-auto border border-slate-800 rounded-xl">
-              <table className="w-full text-left text-xs text-slate-300">
+            <div className="overflow-x-auto border border-slate-800 rounded-xl scrollbar-thin">
+              <table className="w-full text-left text-xs text-slate-300 min-w-[500px]">
                 <thead className="bg-slate-950 border-b border-slate-800 text-slate-400 font-semibold">
                   <tr>
                     <th className="p-3">Name</th>

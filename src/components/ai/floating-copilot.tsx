@@ -280,13 +280,13 @@ Your AI assistant is now active and querying with live business context. How can
     <>
       {/* Floating Trigger Button */}
       {!isOpen && (
-        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3">
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-3">
           <button
             onClick={() => setIsOpen(true)}
-            className="group flex items-center gap-2.5 px-4 py-3 rounded-full bg-forest text-lime-accent hover:bg-forest-action font-bold text-xs shadow-xl shadow-forest/20 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-lime-accent/20"
+            className="group flex items-center gap-2.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-full bg-emerald-950 dark:bg-emerald-950 text-lime-accent hover:bg-forest-action hover:text-white font-bold text-xs shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-emerald-700/60"
           >
             <div className="relative">
-              <Bot className="w-5 h-5 text-lime-accent" />
+              <Bot className="w-5 h-5 text-lime-accent group-hover:text-white transition-colors" />
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400" />
             </div>
@@ -297,9 +297,9 @@ Your AI assistant is now active and querying with live business context. How can
 
       {/* Floating Chat Modal */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-[92vw] sm:w-[430px] h-[570px] max-h-[85vh] bg-surface border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[430px] h-[540px] max-h-[85vh] bg-surface border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
           {/* Header */}
-          <div className="px-4 py-3.5 bg-forest text-white flex items-center justify-between border-b border-forest-action/20 shrink-0">
+          <div className="px-4 py-3.5 bg-emerald-950 dark:bg-emerald-950 text-white flex items-center justify-between border-b border-emerald-800/60 shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-lime-accent/20 border border-lime-accent/30 flex items-center justify-center text-lime-accent font-bold">
                 <Bot className="w-4 h-4" />
@@ -367,7 +367,7 @@ Your AI assistant is now active and querying with live business context. How can
                 <div
                   className={`max-w-[88%] rounded-2xl px-4 py-3 leading-relaxed whitespace-pre-line ${
                     msg.role === "user"
-                      ? "bg-forest text-white rounded-br-xs shadow-xs font-medium"
+                      ? "bg-forest-action text-white rounded-br-xs shadow-xs font-medium"
                       : "bg-surface-subtle text-foreground border border-border/80 rounded-bl-xs"
                   }`}
                 >
@@ -391,7 +391,7 @@ Your AI assistant is now active and querying with live business context. How can
                         <button
                           onClick={handleSaveQuickKey}
                           disabled={!quickApiKey.trim() || isSavingKey}
-                          className="px-3 py-1 bg-forest text-lime-accent rounded-lg font-bold text-[11px] disabled:opacity-40 transition-colors"
+                          className="px-3 py-1 bg-forest-action hover:bg-forest-actionHover text-white rounded-lg font-bold text-[11px] disabled:opacity-40 transition-colors"
                         >
                           {isSavingKey ? "Saving..." : "Save & Connect"}
                         </button>
@@ -482,9 +482,10 @@ Your AI assistant is now active and querying with live business context. How can
             <button
               type="submit"
               disabled={!input.trim() || isLoading}
-              className="p-2 rounded-xl bg-forest text-lime-accent hover:bg-forest-action disabled:opacity-40 transition-colors"
+              className="p-2 rounded-xl bg-forest-action text-white hover:bg-forest-actionHover disabled:opacity-40 transition-colors shrink-0"
+              title="Send message"
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 text-white" />
             </button>
           </form>
         </div>

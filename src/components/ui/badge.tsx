@@ -24,12 +24,12 @@ export function Badge({
     "inline-flex items-center font-medium rounded-full border select-none transition-colors";
 
   const variantStyles = {
-    default: "bg-slateSurface-100 text-brand-900 border-slateSurface-200",
-    success: "bg-success-50 text-success-700 border-success-200",
-    warning: "bg-warning-50 text-warning-700 border-warning-200",
-    risk: "bg-risk-50 text-risk-700 border-risk-200",
-    lime: "bg-lime-accent/30 text-brand-900 border-lime-accent/70 dark:text-lime-accent",
-    outline: "bg-transparent text-brand-800 border-slateSurface-200",
+    default: "bg-surface-subtle text-foreground border-border",
+    success: "bg-success-50 text-success-700 border-success-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60",
+    warning: "bg-warning-50 text-warning-700 border-warning-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60",
+    risk: "bg-risk-50 text-risk-700 border-risk-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60",
+    lime: "bg-lime-accent/25 text-forest-action font-semibold border-lime-accent/50 dark:bg-lime-950/40 dark:text-lime-300 dark:border-lime-700/50",
+    outline: "bg-transparent text-foreground border-border",
     simulated: "bg-amber-100/80 text-amber-950 border-amber-300 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-700/60 font-semibold tracking-wide",
   };
 

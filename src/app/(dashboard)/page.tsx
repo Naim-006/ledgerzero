@@ -96,8 +96,8 @@ export default function OverviewPage() {
 
         <div className="flex items-center gap-2">
           <Link href="/pos">
-            <Button size="sm" className="bg-forest hover:bg-forest/90 text-white font-semibold text-xs shadow-xs gap-1.5">
-              <ShoppingCart className="w-3.5 h-3.5 text-lime-accent" />
+            <Button size="sm" className="bg-forest-action hover:bg-forest-actionHover text-white font-semibold text-xs shadow-xs gap-1.5">
+              <ShoppingCart className="w-3.5 h-3.5 text-white" />
               POS Quick Sell
             </Button>
           </Link>
@@ -153,13 +153,10 @@ export default function OverviewPage() {
 
       {/* 4-Step Connected Shop Operations Workflow */}
       <div className="bg-surface border border-border rounded-2xl p-4 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
+        <div className="flex items-center justify-between gap-1 mb-3">
           <span className="text-xs font-bold text-foreground flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-forest-action animate-pulse" />
-            Shop Operations Flow & Connected Steps
-          </span>
-          <span className="text-[11px] text-text-dim">
-            Daily shop workflow: 1. Checkout Sell → 2. Stock Update → 3. Bills Due → 4. Cash Forecast
+            Shop Operations Flow
           </span>
         </div>
 
@@ -170,8 +167,8 @@ export default function OverviewPage() {
           >
             <div>
               <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-forest text-lime-accent text-[10px] flex items-center justify-center font-bold">1</span>
+                <span className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-forest-action/20 text-forest-action border border-forest-action/40 text-[10px] flex items-center justify-center font-bold shrink-0">1</span>
                   POS Sell Register
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
@@ -191,8 +188,8 @@ export default function OverviewPage() {
           >
             <div>
               <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-forest text-lime-accent text-[10px] flex items-center justify-center font-bold">2</span>
+                <span className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-forest-action/20 text-forest-action border border-forest-action/40 text-[10px] flex items-center justify-center font-bold shrink-0">2</span>
                   Product Stock
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
@@ -212,8 +209,8 @@ export default function OverviewPage() {
           >
             <div>
               <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-forest text-lime-accent text-[10px] flex items-center justify-center font-bold">3</span>
+                <span className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-forest-action/20 text-forest-action border border-forest-action/40 text-[10px] flex items-center justify-center font-bold shrink-0">3</span>
                   Bills & Invoices
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
@@ -233,8 +230,8 @@ export default function OverviewPage() {
           >
             <div>
               <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded-full bg-forest text-lime-accent text-[10px] flex items-center justify-center font-bold">4</span>
+                <span className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-forest-action/20 text-forest-action border border-forest-action/40 text-[10px] flex items-center justify-center font-bold shrink-0">4</span>
                   Cash Flow Forecast
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />

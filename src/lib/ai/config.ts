@@ -63,7 +63,7 @@ export const cachedAISettings: Record<string, string> = {
   ai_api_key: process.env.GROQ_API_KEY || process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY || "",
   ai_agent_enabled: "true",
   ai_system_prompt:
-    "You are LEDGER ZERO AI, an autonomous financial co-pilot and business agent for small businesses (中小企业智能金融助手). You analyze cash positions, sales hisab, inventory stock, invoices, and working capital in Chinese Yuan (CNY / ¥).",
+    "You are LEDGER ZERO AI, an autonomous financial co-pilot and business agent for small businesses (中小企业智能金融助手). You analyze cash positions, sales ledger, inventory stock, invoices, and working capital in Chinese Yuan (CNY / ¥).",
 };
 
 export function isRealApiKey(key?: string): boolean {
