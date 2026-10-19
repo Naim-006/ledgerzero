@@ -12,16 +12,10 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "rgb(var(--background-rgb, 245 247 245) / <alpha-value>)",
-        foreground: "rgb(var(--foreground-rgb, 17 26 20) / <alpha-value>)",
+        background: "var(--background)",
         surface: "var(--surface)",
-        "surface-subtle": "var(--surface-subtle)",
         surfaceSubtle: "var(--surface-subtle)",
-        border: "var(--border)",
-        "border-subtle": "var(--border-subtle)",
         borderCustom: "var(--border)",
-        "text-muted": "rgb(var(--text-muted-rgb, 61 82 71) / <alpha-value>)",
-        "text-dim": "rgb(var(--text-dim-rgb, 83 107 92) / <alpha-value>)",
         brand: {
           50: "var(--surface-subtle)",
           100: "var(--surface-subtle)",
@@ -29,14 +23,14 @@ const config: Config = {
           300: "#8ebc98",
           400: "#5d9c6c",
           500: "#3d7e4d",
-          600: "rgb(var(--text-dim-rgb, 83 107 92) / <alpha-value>)",
-          700: "rgb(var(--text-muted-rgb, 61 82 71) / <alpha-value>)",
-          800: "rgb(var(--foreground-rgb, 17 26 20) / <alpha-value>)",
-          900: "rgb(var(--foreground-rgb, 17 26 20) / <alpha-value>)",
+          600: "var(--text-dim)",
+          700: "var(--text-muted)",
+          800: "var(--foreground)",
+          900: "var(--foreground)",
           950: "var(--background)",
         },
         forest: {
-          DEFAULT: "rgb(var(--forest-rgb, 20 83 45) / <alpha-value>)",
+          DEFAULT: "var(--foreground)",
           dark: "var(--background)",
           light: "var(--surface-subtle)",
           action: "var(--forest-action)",

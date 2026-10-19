@@ -74,7 +74,7 @@ export function CashChart({ projections, height = 280 }: CashChartProps) {
             tickLine={false}
             axisLine={false}
             tick={{ fill: textColor, fontSize: 11 }}
-            tickFormatter={(val) => `${val >= 0 ? "" : "-"}$${Math.abs(val).toLocaleString()}`}
+            tickFormatter={(val) => `${val >= 0 ? "" : "-"}${countryConfig.currencySymbol}${Math.abs(val).toLocaleString()}`}
           />
           <Tooltip
             content={({ active, payload }) => {

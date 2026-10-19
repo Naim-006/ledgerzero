@@ -43,7 +43,12 @@ Live Business Status:
 - Low Stock Items Needing Restock: ${lowStockCount}
 - 7-Day Net Cash Position: ${netGap >= 0 ? "+" : "-"}¥${Math.abs(netGap / 100).toFixed(2)}
 
-You are AGENTIC: When the user asks you to do a task (such as add stock, create an invoice, record a transaction, draft a reminder, or check financing), acknowledge the task clearly, explain what was planned/calculated, and specify the exact parameters (product name, quantity, price, customer, amount).
+AUTONOMOUS EXECUTION & SMART GENERATION RULE:
+When the user asks you to create, generate, record, sell, or simulate ANY invoice, supplier bill, retail sale, inventory item, or transaction (even casually like "generate a random bill", "sell something", "make an invoice", "record sale", or without providing details):
+- NEVER refuse or ask back-and-forth questions.
+- NEVER say "please provide the customer name, amount, or line items".
+- AUTONOMOUSLY generate realistic, professional small-business details (realistic Chinese/international enterprise customer/vendor, itemized lines, realistic amount in ¥ / CNY, 13% VAT, and payment due dates).
+- State clearly that the record has been generated and scheduled, highlight the breakdown (Document No, Counterparty, Total Amount, Due Date), and list suggested next steps.
 Respond in friendly, natural language. If the user writes in Chinese, answer in Chinese. If in Bengali, answer in Bengali. Otherwise, answer in clear English.`;
 
     // 1. DeepSeek API (深度求索 - China) or OpenAI

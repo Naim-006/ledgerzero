@@ -10,7 +10,7 @@ import {
   X,
   LogOut,
   ChevronDown,
-  Building,
+  HelpCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -35,7 +35,6 @@ import {
 
 export function Topbar() {
   const {
-    business,
     resolvedTheme,
     setTheme,
     countryConfig,
@@ -83,22 +82,15 @@ export function Topbar() {
   return (
     <>
       <header className="h-14 bg-surface border-b border-border px-3 sm:px-6 flex items-center justify-between shrink-0 select-none z-20">
-        {/* Left: Mobile Toggle + Business Name */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        {/* Left: Mobile Toggle */}
+        <div className="flex items-center lg:hidden">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-1.5 text-text-dim hover:text-foreground rounded-lg hover:bg-surface-subtle shrink-0"
+            className="p-1.5 text-text-dim hover:text-foreground rounded-lg hover:bg-surface-subtle shrink-0"
             aria-label="Toggle Navigation Menu"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
-
-          <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-surface-subtle text-foreground border border-border/60 max-w-[130px] sm:max-w-[220px] truncate">
-            <Building className="w-3.5 h-3.5 text-forest-action shrink-0" />
-            <span className="text-xs font-semibold tracking-tight truncate">
-              {business?.name || "My Business"}
-            </span>
-          </div>
         </div>
 
         {/* Center: Clean Search Bar */}
@@ -115,17 +107,6 @@ export function Topbar() {
 
         {/* Right: Currency Selector, Theme Toggle & User Profile */}
         <div className="flex items-center gap-2">
-          {/* AI Copilot Quick Trigger */}
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent("open-ai-copilot"))}
-            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-950 dark:bg-emerald-950 text-lime-accent border border-emerald-700/60 hover:bg-forest-action hover:text-white transition-all shadow-xs"
-            title="Ask AI Assistant"
-            aria-label="Ask AI Assistant"
-          >
-            <Bot className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">AI Copilot</span>
-          </button>
-
           {/* Currency / Region Dropdown */}
           <div className="relative">
             <button
@@ -177,6 +158,16 @@ export function Topbar() {
             )}
           </button>
 
+          {/* App Tutorial & Walkthrough Tour */}
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("open-ledger-tutorial"))}
+            className="p-1.5 text-text-dim hover:text-foreground rounded-lg hover:bg-surface-subtle transition-colors"
+            title="App Tutorial & Workflow Tour"
+            aria-label="App Tutorial & Workflow Tour"
+          >
+            <HelpCircle className="w-4 h-4 text-forest-action" />
+          </button>
+
           {/* User Profile Pill & Dropdown */}
           <div className="relative">
             <button
@@ -203,6 +194,17 @@ export function Topbar() {
                     {supabaseUser?.email || "owner@business.com"}
                   </div>
                 </div>
+
+                <button
+                  onClick={() => {
+                    setShowUserDropdown(false);
+                    window.dispatchEvent(new CustomEvent("open-ledger-tutorial"));
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-xs text-foreground hover:bg-surface-subtle rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <HelpCircle className="w-3.5 h-3.5 text-forest-action" />
+                  App Tour & Tutorial
+                </button>
 
                 <Link
                   href="/settings"

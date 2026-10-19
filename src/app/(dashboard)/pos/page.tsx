@@ -67,16 +67,7 @@ export default function PosPage() {
   const [submitting, setSubmitting] = useState(false);
   const [completedSale, setCompletedSale] = useState<PosSaleResult | null>(null);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
-  const [isNewProductModalOpen, setIsNewProductModalOpen] = useState(false);
-
-  // New product form state
-  const [newProdName, setNewProdName] = useState("");
-  const [newProdSku, setNewProdSku] = useState("");
-  const [newProdCategory, setNewProdCategory] = useState("General");
-  const [newProdPrice, setNewProdPrice] = useState("");
-  const [newProdCost, setNewProdCost] = useState("");
-  const [newProdStock, setNewProdStock] = useState("");
-  const [newProdUnit, setNewProdUnit] = useState("pcs");
+  const [mobileTab, setMobileTab] = useState<"catalog" | "cart">("catalog");
 
   const loadProducts = async () => {
     try {
@@ -249,80 +240,68 @@ export default function PosPage() {
     }
   };
 
-  const handleCreateProduct = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newProdName.trim() || !newProdPrice) return;
-
-    try {
-      const priceCents = Math.round(parseFloat(newProdPrice) * 100);
-      const costCents = newProdCost ? Math.round(parseFloat(newProdCost) * 100) : 0;
-      const stock = parseInt(newProdStock, 10) || 0;
-
-      await dataService.createProduct({
-        businessId: business?.id || "biz_default",
-        name: newProdName.trim(),
-        sku: newProdSku.trim() || `SKU-${Date.now().toString().slice(-4)}`,
-        category: newProdCategory.trim() || "General",
-        unitPrice: priceCents,
-        costPrice: costCents,
-        stockQuantity: stock,
-        minStockAlert: 5,
-        unit: newProdUnit.trim() || "pcs",
-      });
-
-      setIsNewProductModalOpen(false);
-      setNewProdName("");
-      setNewProdSku("");
-      setNewProdPrice("");
-      setNewProdCost("");
-      setNewProdStock("");
-      await loadProducts();
-    } catch (err: any) {
-      alert(`Failed to add product: ${err.message}`);
-    }
-  };
 
   const triggerPrintReceipt = () => {
     window.print();
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Top Header & Fast Action Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-border">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 pb-2 border-b border-border">
         <div className="flex items-center gap-2.5">
           <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
             <ShoppingCart className="w-5 h-5" />
           </div>
-          <h1 className="text-xl font-bold text-foreground">POS Register</h1>
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Live Sync
-          </span>
+          <div>
+            <h1 className="text-xl font-bold text-foreground">POS Register</h1>
+            <p className="text-[11px] text-text-dim hidden sm:block">Fast point of sale checkout & instant stock settlement</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
           <Link href="/inventory">
             <Button variant="outline" size="sm" className="gap-2 text-xs">
               <Boxes className="w-4 h-4" />
-              Inventory
+              Manage Inventory
             </Button>
           </Link>
-          <Button
-            size="sm"
-            onClick={() => setIsNewProductModalOpen(true)}
-            className="gap-2 bg-forest-action hover:bg-forest-actionHover text-white text-xs"
-          >
-            <Plus className="w-4 h-4" />
-            Add Product
-          </Button>
         </div>
+      </div>
+
+      {/* Mobile Tab Switcher (Visible only on < lg screens) */}
+      <div className="lg:hidden flex items-center p-1 bg-surface-subtle border border-border rounded-xl">
+        <button
+          onClick={() => setMobileTab("catalog")}
+          className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
+            mobileTab === "catalog"
+              ? "bg-surface text-foreground font-bold shadow-xs border border-border"
+              : "text-text-dim hover:text-foreground"
+          }`}
+        >
+          <Boxes className="w-3.5 h-3.5" />
+          <span>Products ({products.length})</span>
+        </button>
+        <button
+          onClick={() => setMobileTab("cart")}
+          className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-1.5 ${
+            mobileTab === "cart"
+              ? "bg-forest-action text-white font-bold shadow-xs"
+              : "text-text-dim hover:text-foreground"
+          }`}
+        >
+          <ShoppingCart className="w-3.5 h-3.5" />
+          <span>Cart ({cart.reduce((s, i) => s + i.quantity, 0)})</span>
+          {cart.length > 0 && (
+            <span className="font-mono text-[11px] opacity-90">· {formatMoney(cartSubtotal)}</span>
+          )}
+        </button>
       </div>
 
       {/* Main POS Layout: 2 Columns (Catalog on Left, Cart on Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Product Catalog (7 or 8 cols) */}
-        <div className="lg:col-span-7 xl:col-span-8 space-y-4">
+        <div className={`space-y-4 ${mobileTab === "cart" ? "hidden lg:block" : "block"} lg:col-span-7 xl:col-span-8`}>
           {/* Search & Category Filter Pills */}
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -380,19 +359,20 @@ export default function PosPage() {
                   <Sparkles className="w-3.5 h-3.5 text-lime-accent" />
                   Load Starter Inventory (8 Items)
                 </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setIsNewProductModalOpen(true)}
-                  className="text-xs gap-1.5"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Create Custom Product
-                </Button>
+                <Link href="/inventory">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs gap-1.5"
+                  >
+                    <Boxes className="w-3.5 h-3.5" />
+                    Manage in Inventory
+                  </Button>
+                </Link>
               </div>
             </Card>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3.5">
               {filteredProducts.map((p) => {
                 const isOutOfStock = p.stockQuantity <= 0;
                 const isLowStock = !isOutOfStock && p.stockQuantity <= p.minStockAlert;
@@ -405,56 +385,58 @@ export default function PosPage() {
                     key={p.id}
                     onClick={() => addToCart(p)}
                     disabled={isOutOfStock || isMaxInCart}
-                    className={`text-left p-3.5 rounded-xl border transition-all flex flex-col justify-between h-36 relative group select-none ${
+                    className={`text-left p-3 sm:p-3.5 rounded-2xl border transition-all flex flex-col justify-between min-h-[145px] sm:min-h-[155px] relative group select-none shadow-2xs ${
                       isOutOfStock
-                        ? "bg-muted/40 border-border opacity-60 cursor-not-allowed"
+                        ? "bg-surface-subtle/50 border-border/60 opacity-55 cursor-not-allowed"
                         : isMaxInCart
                         ? "bg-surface border-amber-500/40 cursor-default"
-                        : "bg-surface hover:border-forest/50 hover:shadow-xs active:scale-[0.98] border-border"
+                        : inCart
+                        ? "bg-surface border-forest-action/60 shadow-xs ring-1 ring-forest-action/20"
+                        : "bg-surface hover:border-forest-action/40 hover:shadow-xs active:scale-[0.98] border-border"
                     }`}
                   >
-                    <div>
-                      <div className="flex items-start justify-between gap-1 mb-1">
-                        <span className="text-[10px] font-mono font-medium text-muted-foreground uppercase truncate">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-[10px] font-mono font-medium text-text-dim uppercase truncate">
                           {p.sku}
                         </span>
                         {isOutOfStock ? (
-                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-red-500/10 text-red-600 border-red-500/20">
-                            Out of Stock
-                          </Badge>
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold bg-rose-500/10 text-rose-600 border border-rose-500/20 shrink-0">
+                            Out
+                          </span>
                         ) : isLowStock ? (
-                          <Badge variant="outline" className="text-[9px] px-1.5 py-0 bg-amber-500/10 text-amber-600 border-amber-500/20">
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
                             {p.stockQuantity} left
-                          </Badge>
+                          </span>
                         ) : (
-                          <span className="text-[10px] text-emerald-600 font-medium">
+                          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium shrink-0">
                             {p.stockQuantity} {p.unit}
                           </span>
                         )}
                       </div>
-                      <h4 className="font-semibold text-xs text-foreground line-clamp-2 leading-tight">
+                      <h4 className="font-bold text-xs text-foreground line-clamp-2 leading-snug">
                         {p.name}
                       </h4>
                     </div>
 
-                    <div className="flex items-end justify-between mt-2 pt-2 border-t border-border/60">
-                      <div>
-                        <span className="text-sm font-bold text-foreground">
+                    <div className="flex items-end justify-between mt-3 pt-2 border-t border-border/50">
+                      <div className="min-w-0 pr-1">
+                        <span className="text-sm font-extrabold text-foreground tabular-nums tracking-tight block">
                           {formatMoney(p.unitPrice)}
                         </span>
                         {p.category && (
-                          <span className="block text-[10px] text-muted-foreground truncate max-w-[80px]">
+                          <span className="block text-[10px] text-text-dim truncate">
                             {p.category}
                           </span>
                         )}
                       </div>
 
                       {currentCartQty > 0 ? (
-                        <div className="w-6 h-6 rounded-full bg-forest-action text-white text-xs font-bold flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-xl bg-forest-action text-white text-xs font-black flex items-center justify-center shrink-0 shadow-xs">
                           {currentCartQty}
                         </div>
                       ) : (
-                        <div className="w-6 h-6 rounded-full bg-surface-subtle text-text-dim group-hover:bg-forest-action group-hover:text-white transition-colors flex items-center justify-center shrink-0 border border-border">
+                        <div className="w-7 h-7 rounded-xl bg-surface-subtle text-text-dim group-hover:bg-forest-action group-hover:text-white transition-colors flex items-center justify-center shrink-0 border border-border">
                           <Plus className="w-3.5 h-3.5" />
                         </div>
                       )}
@@ -467,7 +449,7 @@ export default function PosPage() {
         </div>
 
         {/* Right Column: Active Sale Cart (5 or 4 cols) */}
-        <div id="pos-cart-panel" className="lg:col-span-5 xl:col-span-4 scroll-mt-20">
+        <div id="pos-cart-panel" className={`${mobileTab === "catalog" ? "hidden lg:block" : "block"} lg:col-span-5 xl:col-span-4 scroll-mt-20`}>
           <Card className="p-4 bg-surface border-border sticky top-4 shadow-sm flex flex-col space-y-4">
             {/* Cart Header */}
             <div className="flex items-center justify-between pb-3 border-b border-border">
@@ -795,115 +777,9 @@ export default function PosPage() {
         </Modal>
       )}
 
-      {/* Add New Product Modal */}
-      <Modal
-        isOpen={isNewProductModalOpen}
-        onClose={() => setIsNewProductModalOpen(false)}
-        title="Add New Product to Inventory"
-      >
-        <form onSubmit={handleCreateProduct} className="space-y-4">
-          <div>
-            <label className="text-xs font-semibold text-foreground">Product Name *</label>
-            <Input
-              required
-              placeholder="e.g. Wireless Barcode Scanner"
-              value={newProdName}
-              onChange={(e) => setNewProdName(e.target.value)}
-              className="mt-1 text-sm"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-foreground">SKU / Code</label>
-              <Input
-                placeholder="e.g. ELEC-042"
-                value={newProdSku}
-                onChange={(e) => setNewProdSku(e.target.value)}
-                className="mt-1 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-foreground">Category</label>
-              <Input
-                placeholder="e.g. Electronics, Grocery"
-                value={newProdCategory}
-                onChange={(e) => setNewProdCategory(e.target.value)}
-                className="mt-1 text-sm"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-foreground">Selling Price ($) *</label>
-              <Input
-                required
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value={newProdPrice}
-                onChange={(e) => setNewProdPrice(e.target.value)}
-                className="mt-1 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-foreground">Cost Price ($)</label>
-              <Input
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value={newProdCost}
-                onChange={(e) => setNewProdCost(e.target.value)}
-                className="mt-1 text-sm"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-foreground">Initial Stock Quantity</label>
-              <Input
-                type="number"
-                min="0"
-                placeholder="100"
-                value={newProdStock}
-                onChange={(e) => setNewProdStock(e.target.value)}
-                className="mt-1 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-foreground">Unit</label>
-              <Input
-                placeholder="pcs, box, kg"
-                value={newProdUnit}
-                onChange={(e) => setNewProdUnit(e.target.value)}
-                className="mt-1 text-sm"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2 border-t border-border">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsNewProductModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" size="sm" className="bg-forest-action hover:bg-forest-actionHover text-white">
-              Save Product
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
       {/* Mobile Sticky Cart & Quick Checkout Bar */}
-      {cart.length > 0 && (
-        <div className="lg:hidden fixed bottom-4 inset-x-4 z-30 bg-surface/95 border border-forest-action/40 p-3 rounded-2xl shadow-2xl flex items-center justify-between backdrop-blur-md">
+      {cart.length > 0 && mobileTab === "catalog" && (
+        <div className="lg:hidden fixed bottom-16 inset-x-3 z-30 bg-surface/95 border border-forest-action/40 p-3 rounded-2xl shadow-2xl flex items-center justify-between backdrop-blur-md">
           <div className="min-w-0">
             <div className="text-[11px] text-text-dim">
               {cart.reduce((s, i) => s + i.quantity, 0)} items in sale
@@ -913,10 +789,7 @@ export default function PosPage() {
             </div>
           </div>
           <button
-            onClick={() => {
-              const cartElem = document.getElementById("pos-cart-panel");
-              cartElem?.scrollIntoView({ behavior: "smooth" });
-            }}
+            onClick={() => setMobileTab("cart")}
             className="px-4 py-2 bg-forest-action hover:bg-forest-actionHover text-white text-xs font-bold rounded-xl shadow flex items-center gap-1.5 transition-all active:scale-95"
           >
             <ShoppingCart className="w-4 h-4" />

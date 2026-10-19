@@ -6,7 +6,6 @@ import {
   Boxes,
   Plus,
   Search,
-  ShoppingCart,
   AlertTriangle,
   TrendingUp,
   PackageCheck,
@@ -222,12 +221,6 @@ export default function InventoryPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Link href="/pos">
-            <Button variant="outline" size="sm" className="gap-2 text-xs">
-              <ShoppingCart className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              POS Register
-            </Button>
-          </Link>
           <Button
             size="sm"
             onClick={handleOpenAddModal}

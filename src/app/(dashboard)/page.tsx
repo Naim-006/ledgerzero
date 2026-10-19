@@ -26,12 +26,18 @@ import {
   CheckCircle2,
   Clock,
   ShoppingCart,
+  Boxes,
+  FileText,
+  TrendingUp,
+  Building,
+  CreditCard,
+  Plus,
 } from "lucide-react";
 import Link from "next/link";
 import { formatShortDate } from "@/lib/dates";
 
 export default function OverviewPage() {
-  const { permissions } = useApp();
+  const { business, activeCurrency } = useApp();
   const [cashPos, setCashPos] = useState<CashPosition | null>(null);
   const [recSummary, setRecSummary] = useState<ReceivablesSummary | null>(null);
   const [paySummary, setPaySummary] = useState<PayablesSummary | null>(null);
@@ -83,31 +89,49 @@ export default function OverviewPage() {
 
   return (
     <div className="space-y-6 fade-in select-none">
-      {/* Page Title & Quick Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border">
-        <h1 className="text-xl font-bold tracking-tight text-foreground">
-          Shop Overview
-        </h1>
+      {/* Clean Dashboard Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              Dashboard
+            </h1>
+            <span className="px-2 py-0.5 rounded-full bg-surface-subtle text-text-dim border border-border text-[11px] font-mono font-medium">
+              {activeCurrency || "CNY"}
+            </span>
+          </div>
+          <p className="text-xs text-text-dim mt-0.5">
+            Real-time cash flow, counter sales, and financial runway
+          </p>
+        </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <Link href="/pos">
-            <Button size="sm" className="bg-forest-action hover:bg-forest-actionHover text-white font-semibold text-xs shadow-xs gap-1.5">
-              <ShoppingCart className="w-3.5 h-3.5 text-white" />
-              POS Register
+            <Button size="sm" className="bg-forest-action hover:bg-forest-actionHover text-white font-semibold text-xs shadow-xs gap-1.5 h-9 px-3.5">
+              <ShoppingCart className="w-4 h-4 text-white" />
+              <span>POS Register</span>
             </Button>
           </Link>
-          <Link href="/action-center">
-            <Button variant="outline" size="sm" className="text-xs">
-              <Zap className="w-3.5 h-3.5 mr-1 text-amber-500" />
-              Approvals ({pendingTasks.length})
+          <Link href="/transactions">
+            <Button variant="outline" size="sm" className="text-xs h-9 gap-1.5">
+              <Plus className="w-3.5 h-3.5" />
+              <span>Record Sale</span>
             </Button>
           </Link>
+          {pendingTasks.length > 0 && (
+            <Link href="/action-center">
+              <Button variant="outline" size="sm" className="text-xs h-9 gap-1.5 text-amber-600 dark:text-amber-400 border-amber-500/30">
+                <Zap className="w-3.5 h-3.5" />
+                <span>{pendingTasks.length} Pending Approval{pendingTasks.length > 1 ? "s" : ""}</span>
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
       {/* Fresh Account Greeting Banner */}
       {isFreshWorkspace && (
-        <div className="p-4 bg-surface border border-border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div className="p-4 bg-surface border border-border rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div>
             <h4 className="text-xs font-bold text-foreground">Fresh Workspace Ready</h4>
             <p className="text-xs text-text-dim mt-0.5">
@@ -125,7 +149,7 @@ export default function OverviewPage() {
         </div>
       )}
 
-      {/* Sleek Liquidity Alert Callout (Only appears if real payables exceed cash) */}
+      {/* Liquidity Alert Callout (Only appears if real payables exceed cash) */}
       {hasShortfall && (
         <div className="p-3.5 bg-rose-50/70 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/40 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
           <div className="flex items-center gap-2.5">
@@ -146,125 +170,61 @@ export default function OverviewPage() {
         </div>
       )}
 
-      {/* 4-Step Connected Shop Operations Workflow */}
-      <div className="bg-surface border border-border rounded-2xl p-4 shadow-xs">
-        <div className="flex items-center justify-between gap-1 mb-3">
-          <span className="text-xs font-bold text-foreground flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-forest-action animate-pulse" />
-            Operations Workflow
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <Link
-            href="/pos"
-            className="p-3 rounded-xl bg-surface-subtle hover:bg-forest-action/10 border border-border/70 hover:border-forest-action transition-all group flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
-                <span className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-forest-action/20 text-forest-action border border-forest-action/40 text-[10px] flex items-center justify-center font-bold shrink-0">1</span>
-                  POS Register
-                </span>
-                <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
-              </div>
-              <p className="text-[11px] text-text-dim leading-snug">
-                Counter sales and instant receipts.
-              </p>
-            </div>
-            <div className="mt-2 text-[10px] font-semibold text-forest-action">
-              Deducts stock →
-            </div>
-          </Link>
-
-          <Link
-            href="/inventory"
-            className="p-3 rounded-xl bg-surface-subtle hover:bg-forest-action/10 border border-border/70 hover:border-forest-action transition-all group flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
-                <span className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-forest-action/20 text-forest-action border border-forest-action/40 text-[10px] flex items-center justify-center font-bold shrink-0">2</span>
-                  Inventory
-                </span>
-                <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
-              </div>
-              <p className="text-[11px] text-text-dim leading-snug">
-                Stock counts, valuations & alerts.
-              </p>
-            </div>
-            <div className="mt-2 text-[10px] font-semibold text-forest-action">
-              Manage stock →
-            </div>
-          </Link>
-
-          <Link
-            href="/invoices"
-            className="p-3 rounded-xl bg-surface-subtle hover:bg-forest-action/10 border border-border/70 hover:border-forest-action transition-all group flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
-                <span className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-forest-action/20 text-forest-action border border-forest-action/40 text-[10px] flex items-center justify-center font-bold shrink-0">3</span>
-                  Bills & Invoices
-                </span>
-                <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
-              </div>
-              <p className="text-[11px] text-text-dim leading-snug">
-                Customer credit and supplier bills.
-              </p>
-            </div>
-            <div className="mt-2 text-[10px] font-semibold text-forest-action">
-              Cash schedule →
-            </div>
-          </Link>
-
-          <Link
-            href="/cash-flow"
-            className="p-3 rounded-xl bg-surface-subtle hover:bg-forest-action/10 border border-border/70 hover:border-forest-action transition-all group flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
-                <span className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-forest-action/20 text-forest-action border border-forest-action/40 text-[10px] flex items-center justify-center font-bold shrink-0">4</span>
-                  Cash Flow Forecast
-                </span>
-                <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
-              </div>
-              <p className="text-[11px] text-text-dim leading-snug">
-                Liquidity projections and planning.
-              </p>
-            </div>
-            <div className="mt-2 text-[10px] font-semibold text-forest-action">
-              Protect runway →
-            </div>
-          </Link>
-        </div>
+      {/* Quick Access Shortcuts Strip */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none text-xs">
+        <Link
+          href="/pos"
+          className="px-3 py-1.5 rounded-lg bg-surface border border-border hover:border-forest-action hover:text-forest-action text-foreground font-medium flex items-center gap-1.5 shrink-0 transition-colors shadow-2xs"
+        >
+          <ShoppingCart className="w-3.5 h-3.5 text-forest-action" />
+          <span>POS Register</span>
+        </Link>
+        <Link
+          href="/inventory"
+          className="px-3 py-1.5 rounded-lg bg-surface border border-border hover:border-sky-500 hover:text-sky-600 dark:hover:text-sky-400 text-foreground font-medium flex items-center gap-1.5 shrink-0 transition-colors shadow-2xs"
+        >
+          <Boxes className="w-3.5 h-3.5 text-sky-500" />
+          <span>Product Stock</span>
+        </Link>
+        <Link
+          href="/invoices"
+          className="px-3 py-1.5 rounded-lg bg-surface border border-border hover:border-purple-500 hover:text-purple-600 dark:hover:text-purple-400 text-foreground font-medium flex items-center gap-1.5 shrink-0 transition-colors shadow-2xs"
+        >
+          <FileText className="w-3.5 h-3.5 text-purple-500" />
+          <span>Bills & Invoices</span>
+        </Link>
+        <Link
+          href="/cash-flow"
+          className="px-3 py-1.5 rounded-lg bg-surface border border-border hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400 text-foreground font-medium flex items-center gap-1.5 shrink-0 transition-colors shadow-2xs"
+        >
+          <TrendingUp className="w-3.5 h-3.5 text-amber-500" />
+          <span>Cash Flow Forecast</span>
+        </Link>
       </div>
 
-      {/* Top 4 Financial Metric Cards — Clean & Plain English */}
+      {/* Top 4 Financial Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Total Cash"
           amount={cashPos?.currentCash || 0}
-          period="Liquid & bank accounts"
+          period="Liquid in hand & bank"
           href="/transactions"
-          trend={cashPos?.totalIncome ? { value: "Positive cash flow", isPositive: true } : undefined}
+          trend={cashPos?.totalIncome ? { value: "Active", isPositive: true } : undefined}
         />
 
         <MetricCard
           title="Receivables"
           amount={recSummary?.totalReceivables || 0}
-          period="Open customer invoices"
+          period="Open customer balances"
           href="/receivables"
           variant={recSummary?.overdueAmount ? "warning" : "default"}
-          trend={recSummary?.count ? { value: `${recSummary.count} open`, isPositive: true } : undefined}
+          trend={recSummary?.count ? { value: `${recSummary.count} invoices`, isPositive: true } : undefined}
         />
 
         <MetricCard
           title="Upcoming Payables"
           amount={paySummary?.dueWithin7Days || 0}
-          period="Due within 7 days"
+          period="Due in next 7 days"
           href="/payables"
           variant={paySummary?.dueWithin7Days ? "risk" : "default"}
           trend={paySummary?.dueWithin7Days ? { value: "Scheduled", isPositive: false } : undefined}
@@ -290,10 +250,10 @@ export default function OverviewPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-sm font-bold text-foreground">
-                Projected Cash Forecast
+                Projected Cash Trajectory
               </CardTitle>
               <p className="text-xs text-text-dim mt-0.5">
-                Estimated bank balance trajectory based on scheduled sales and bills.
+                Daily rolling balance projection based on scheduled customer payments and supplier bills
               </p>
             </div>
 
@@ -324,9 +284,9 @@ export default function OverviewPage() {
           <CardContent>
             {forecast && <CashChart projections={forecast.dailyProjections} height={260} />}
 
-            <div className="grid grid-cols-3 gap-4 mt-4 pt-3 border-t border-border/60 text-xs">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-4 pt-3 border-t border-border/60 text-xs">
               <div>
-                <span className="text-text-dim block">Lowest Projected Balance</span>
+                <span className="text-text-dim block">Lowest Balance</span>
                 <span
                   className={`font-semibold text-sm tabular-nums ${
                     forecast?.minimumCash! < 0 ? "text-rose-600" : "text-emerald-600"
@@ -336,13 +296,13 @@ export default function OverviewPage() {
                 </span>
               </div>
               <div>
-                <span className="text-text-dim block">Money Coming In</span>
+                <span className="text-text-dim block">Expected Inflows</span>
                 <span className="font-semibold text-sm tabular-nums text-foreground">
                   <CurrencyAmount amount={forecast?.totalExpectedInflows || 0} />
                 </span>
               </div>
               <div>
-                <span className="text-text-dim block">Money Going Out</span>
+                <span className="text-text-dim block">Scheduled Outflows</span>
                 <span className="font-semibold text-sm tabular-nums text-rose-600">
                   <CurrencyAmount amount={forecast?.totalScheduledOutflows || 0} />
                 </span>
@@ -359,7 +319,7 @@ export default function OverviewPage() {
                 Unpaid Invoices Timeline
               </CardTitle>
               <p className="text-xs text-text-dim mt-0.5">
-                Breakdown of unpaid customer bills by due date
+                4-Bucket aging breakdown of customer balances
               </p>
             </div>
             <Link
@@ -382,7 +342,7 @@ export default function OverviewPage() {
                   </span>
                 </div>
                 <p className="text-text-dim text-[11px] mt-1 leading-relaxed">
-                  You have overdue customer invoices. Send a quick payment reminder to speed up cash collection.
+                  Overdue invoices tie up working capital. Review customer aging to initiate polite recovery.
                 </p>
               </div>
             ) : (
@@ -464,13 +424,13 @@ export default function OverviewPage() {
           </CardContent>
         </Card>
 
-        {/* Recent Activity Log */}
+        {/* Activity Trail */}
         <Card className="border-border shadow-xs">
           <CardHeader className="flex flex-row items-center justify-between pb-3 border-b border-border/60">
             <div className="flex items-center gap-2">
               <Bot className="w-4 h-4 text-forest-action" />
               <CardTitle className="text-sm font-bold text-foreground">
-                Activity Trail
+                Audit Trail & Activity
               </CardTitle>
             </div>
             <Link

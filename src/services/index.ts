@@ -19,7 +19,10 @@ import {
 } from "./contracts";
 
 export const IS_API_MODE = process.env.NEXT_PUBLIC_DATA_MODE === "api";
-export const IS_MOCK_MODE = process.env.NEXT_PUBLIC_DATA_MODE === "mock";
+export const IS_MOCK_MODE =
+  process.env.NEXT_PUBLIC_DATA_MODE === "mock" ||
+  process.env.NODE_ENV === "test" ||
+  !process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 // Production instances wired directly to live Supabase PostgreSQL
 const supabaseDataService = new SupabaseDataService();

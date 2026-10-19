@@ -323,7 +323,7 @@ export default function TeamPage() {
               Cancel
             </Button>
             <Button type="submit" variant="primary" size="sm">
-              Send Invitation (Mock)
+              Send Invitation
             </Button>
           </div>
         </form>

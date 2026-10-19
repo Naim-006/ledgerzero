@@ -85,35 +85,6 @@ export default function AdminPortalPage() {
     },
   ]);
 
-  // Users State
-  const [userSearch, setUserSearch] = useState("");
-  const [users, setUsers] = useState<
-    Array<{
-      id: string;
-      email: string;
-      name: string;
-      role: string;
-      status: string;
-      lastLogin: string;
-    }>
-  >([
-    {
-      id: "usr-admin",
-      email: "admin@admin.com",
-      name: "Master Administrator",
-      role: "Admin",
-      status: "active",
-      lastLogin: "Active Now",
-    },
-    {
-      id: "usr-owner",
-      email: "hnayeem005@gmail.com",
-      name: "Shop Owner",
-      role: "Owner",
-      status: "active",
-      lastLogin: "Active in DB",
-    },
-  ]);
 
   // Detected AI Provider & Model
   const detectedAI = detectAIProviderAndModel(
@@ -160,13 +131,12 @@ export default function AdminPortalPage() {
         setAiApiKey(localKey);
       }
 
-      // 2. Fetch live businesses and profiles from Supabase
+      // 2. Fetch live businesses from Supabase
       try {
         const sb = getSupabaseClient();
-        const [{ data: dbBiz }, { data: dbProfiles }] = await Promise.all([
-          sb.from("businesses").select("id, name, currency, country_code, status, created_at, owner_id"),
-          sb.from("profiles").select("*"),
-        ]);
+        const { data: dbBiz } = await sb
+          .from("businesses")
+          .select("id, name, currency, country_code, status, created_at, owner_id");
 
         if (dbBiz && dbBiz.length > 0) {
           setBusinesses(
@@ -178,19 +148,6 @@ export default function AdminPortalPage() {
               country: b.country_code || "CN",
               status: b.status || "active",
               createdAt: b.created_at?.split("T")[0] || "2026-10-18",
-            }))
-          );
-        }
-
-        if (dbProfiles && dbProfiles.length > 0) {
-          setUsers(
-            dbProfiles.map((p: any) => ({
-              id: p.id,
-              email: p.email,
-              name: p.full_name || p.email.split("@")[0],
-              role: p.is_admin ? "Admin" : (p.role?.charAt(0).toUpperCase() + p.role?.slice(1) || "Owner"),
-              status: "active",
-              lastLogin: "Active in database",
             }))
           );
         }
@@ -465,7 +422,7 @@ export default function AdminPortalPage() {
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950 border border-slate-800 text-xs">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
             <span className="text-slate-300 text-[11px]">Database Online</span>
           </div>
 
@@ -489,70 +446,45 @@ export default function AdminPortalPage() {
       </header>
 
       {/* Main Container */}
-      <div className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 space-y-8">
-        {/* Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8 space-y-6 sm:space-y-8">
+        {/* Metric Cards - 3 Core Executive Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xs">
             <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
-              <span>REGISTERED SHOPS</span>
+              <span>AI COPILOT ENGINE</span>
+              <Bot className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div className="text-2xl font-bold text-white flex items-center gap-2">
+              <span className={hasSavedKey || aiApiKey ? "text-emerald-400" : "text-amber-400"}>
+                {hasSavedKey || aiApiKey ? "Connected" : "Key Not Set"}
+              </span>
+            </div>
+            <div className="text-[11px] text-slate-400 mt-1">
+              {detectedAI.name} ({detectedAI.model})
+            </div>
+          </div>
+
+         
+
+          <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xs">
+            <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
+              <span>TENANT WORKSPACES</span>
               <Building className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="text-2xl font-bold text-white tabular-nums">
               {businesses.length}
             </div>
-            <div className="text-[11px] text-emerald-400/80 mt-1">
-              Active workspaces
-            </div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xs">
-            <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
-              <span>TOTAL USERS</span>
-              <Users className="w-4 h-4 text-emerald-400" />
-            </div>
-            <div className="text-2xl font-bold text-white tabular-nums">
-              {users.length}
-            </div>
             <div className="text-[11px] text-slate-400 mt-1">
-              Registered accounts
-            </div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xs">
-            <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
-              <span>AI COPILOT STATUS</span>
-              <Bot className="w-4 h-4 text-emerald-400" />
-            </div>
-            <div className="text-2xl font-bold text-white flex items-center gap-2">
-              <span className={aiApiKey ? "text-emerald-400" : "text-amber-400"}>
-                {aiApiKey ? "Live Cloud LLM" : "Key Not Set"}
-              </span>
-            </div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              {aiApiKey ? `${detectedAI.provider} (${detectedAI.model})` : "Configure API key below"}
-            </div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xs">
-            <div className="flex items-center justify-between text-slate-400 text-xs font-semibold mb-2">
-              <span>DATABASE</span>
-              <Database className="w-4 h-4 text-emerald-400" />
-            </div>
-            <div className="text-2xl font-bold text-emerald-400">
-              Supabase Live
-            </div>
-            <div className="text-[11px] text-slate-400 mt-1">
-              PostgreSQL Connected
+              Active shop environments
             </div>
           </div>
         </div>
 
-        {/* Tab Navigation */}
+        {/* Tab Navigation - Clean 3 Tabs */}
         <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto scrollbar-none flex-nowrap">
           {[
             { id: "ai", label: "AI Configuration", icon: Key },
-            { id: "businesses", label: "Shops", icon: Building },
-            { id: "users", label: "Users", icon: Users },
+            { id: "businesses", label: "Workspaces", icon: Building },
             { id: "diagnostics", label: "Diagnostics", icon: Sliders },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -792,43 +724,6 @@ export default function AdminPortalPage() {
           </div>
         )}
 
-        {/* -------------------------------------------------------------
-            TAB 3: User Accounts
-            ------------------------------------------------------------- */}
-        {activeTab === "users" && (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-            <div>
-              <h3 className="text-base font-bold text-white">User Accounts</h3>
-            </div>
-
-            <div className="overflow-x-auto border border-slate-800 rounded-xl scrollbar-thin">
-              <table className="w-full text-left text-xs text-slate-300 min-w-[500px]">
-                <thead className="bg-slate-950 border-b border-slate-800 text-slate-400 font-semibold">
-                  <tr>
-                    <th className="p-3">Name</th>
-                    <th className="p-3">Email</th>
-                    <th className="p-3">Role</th>
-                    <th className="p-3">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800">
-                  {users.map((u) => (
-                    <tr key={u.id} className="hover:bg-slate-800/50">
-                      <td className="p-3 font-semibold text-white">{u.name}</td>
-                      <td className="p-3 font-mono">{u.email}</td>
-                      <td className="p-3">
-                        <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-200 text-[10px] font-bold">
-                          {u.role}
-                        </span>
-                      </td>
-                      <td className="p-3 text-emerald-400 font-medium">Active</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
 
         {/* -------------------------------------------------------------
             TAB 4: System Diagnostics

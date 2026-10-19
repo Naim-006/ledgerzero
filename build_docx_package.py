@@ -5,6 +5,8 @@ Tsinghua University PBCSF & WeBank Global FinTechathon (Topic E)
 """
 
 import os, sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import docx
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH

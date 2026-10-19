@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/context/app-context";
 import { dataService } from "@/services";
 import {
@@ -33,8 +33,6 @@ interface ChatMessage {
 
 export function FloatingCopilot() {
   const router = useRouter();
-  const pathname = usePathname();
-  const isPosPage = pathname === "/pos";
   const { business, activeCurrency } = useApp();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -42,13 +40,6 @@ export function FloatingCopilot() {
   const [quickApiKey, setQuickApiKey] = useState("");
   const [isSavingKey, setIsSavingKey] = useState(false);
   const [hasApiKey, setHasApiKey] = useState(false);
-
-  // Listen for open-ai-copilot events from topbar or header buttons
-  useEffect(() => {
-    const handleOpen = () => setIsOpen(true);
-    window.addEventListener("open-ai-copilot", handleOpen);
-    return () => window.removeEventListener("open-ai-copilot", handleOpen);
-  }, []);
 
   const [contextData, setContextData] = useState<{
     cash: number;
@@ -95,37 +86,27 @@ export function FloatingCopilot() {
       setHasApiKey(keyPresent);
 
       if (messages.length === 0) {
-        if (keyPresent) {
-          setMessages([
-            {
-              id: "welcome-live",
-              role: "assistant",
-              content: `Hello! I am your **AI Business Co-Pilot** powered by live AI. 
-I monitor your shop's cash position, inventory stock levels, customer debts, and upcoming vendor bills.
+        setMessages([
+          {
+            id: keyPresent ? "welcome-live" : "welcome-prompt-key",
+            role: "assistant",
+            content: keyPresent
+              ? `Hello! I am your AI Financial Co-Pilot. I monitor cash flow, stock inventory, customer invoices, and supplier bills.
 
-Ask me any business question in plain English or Bengali, or tap a quick question below:`,
-              suggestedActions: [
-                "Will I have enough cash next week?",
-                "Check low stock products",
-                "Who owes me money?",
-              ],
-              timestamp: "Just now",
-            },
-          ]);
-        } else {
-          setMessages([
-            {
-              id: "welcome-prompt-key",
-              role: "assistant",
-              content: `Hello! I am your **AI Business Co-Pilot**. 
+Tap any quick action below to run it immediately, or type any request:`
+              : `Hello! I am your AI Financial Co-Pilot. I can autonomously record POS sales, create customer invoices, log supplier bills, and manage inventory.
 
-⚠️ **No AI API key is connected yet.**
-To enable live AI answers and recommendations, paste your API key (OpenAI, Gemini, Groq, or Claude) below or configure it in the [Admin Portal](/admin).`,
-              showKeyPrompt: true,
-              timestamp: "Just now",
-            },
-          ]);
-        }
+Tap any quick action to run it immediately, or enter an API key for custom open-ended questions:`,
+            suggestedActions: [
+              "🛒 Sell an item (Random POS Sale)",
+              "📄 Generate a random customer invoice",
+              "📦 Generate a random supplier bill",
+              "💡 Suggest actions for my shop",
+            ],
+            showKeyPrompt: !keyPresent,
+            timestamp: "Just now",
+          },
+        ]);
       }
     } catch {
       // Fallback
@@ -133,8 +114,15 @@ To enable live AI answers and recommendations, paste your API key (OpenAI, Gemin
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     refreshContext();
   }, [isOpen]);
+
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener("open-ledger-copilot", handleOpen);
+    return () => window.removeEventListener("open-ledger-copilot", handleOpen);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -166,9 +154,10 @@ To enable live AI answers and recommendations, paste your API key (OpenAI, Gemin
           content: `🟢 **AI API Connected Successfully!**
 Your AI assistant is now active and querying with live business context. How can I assist your business today?`,
           suggestedActions: [
-            "Will I have enough cash next week?",
-            "Check low stock products",
-            "Who owes money?",
+            "🛒 Sell an item (Random POS Sale)",
+            "📄 Generate a random customer invoice",
+            "📦 Generate a random supplier bill",
+            "💡 Suggest actions for my shop",
           ],
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
@@ -195,7 +184,7 @@ Your AI assistant is now active and querying with live business context. How can
     setInput("");
     setIsLoading(true);
 
-    // 1. Check for Agentic Action Execution (Add stock, create invoice, record sale, send reminder)
+    // 1. Check for Agentic Action Execution (Add stock, create invoice, record sale, send reminder, suggestions)
     try {
       const actionResult = await executeAgenticAction(text, business?.id, activeCurrency);
       if (actionResult && actionResult.isAction) {
@@ -206,7 +195,7 @@ Your AI assistant is now active and querying with live business context. How can
             id: `action-${Date.now()}`,
             role: "assistant",
             content: actionResult.successMessage || "Task completed successfully.",
-            suggestedActions: actionResult.navigateHref ? [`View ${actionResult.navigateHref.replace("/", "")}`] : [],
+            suggestedActions: actionResult.suggestedActions || (actionResult.navigateHref ? [`View ${actionResult.navigateHref.replace("/", "")}`] : []),
             timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           },
         ]);
@@ -261,89 +250,72 @@ Your AI assistant is now active and querying with live business context. How can
   };
 
   const handleActionClick = (action: string) => {
-    const act = action.toLowerCase();
-    if (act.includes("admin") || act.includes("connect api")) {
+    const act = action.toLowerCase().trim();
+
+    // Explicit navigation links
+    if (act.startsWith("view ") || act.startsWith("go to ") || act.startsWith("open ")) {
+      if (act.includes("invoic") || act.includes("bill")) {
+        router.push("/invoices");
+      } else if (act.includes("inventory") || act.includes("stock")) {
+        router.push("/inventory");
+      } else if (act.includes("pos") || act.includes("register")) {
+        router.push("/pos");
+      } else if (act.includes("transaction") || act.includes("ledger")) {
+        router.push("/transactions");
+      } else if (act.includes("cash") || act.includes("forecast") || act.includes("flow")) {
+        router.push("/cash-flow");
+      } else if (act.includes("admin")) {
+        router.push("/admin");
+      }
+      setIsOpen(false);
+      return;
+    }
+
+    if (act.includes("connect deepseek") || act.includes("connect ai") || act.includes("configure key")) {
       router.push("/admin");
       setIsOpen(false);
-    } else if (act.includes("stock") || act.includes("item") || act.includes("মাল")) {
-      router.push("/inventory");
-      setIsOpen(false);
-    } else if (act.includes("pos") || act.includes("sell") || act.includes("বিক্রি")) {
-      router.push("/pos");
-      setIsOpen(false);
-    } else if (act.includes("forecast") || act.includes("cash flow") || act.includes("simulate")) {
-      router.push("/cash-flow");
-      setIsOpen(false);
-    } else if (act.includes("reminder") || act.includes("unpaid") || act.includes("owe") || act.includes("বাকি")) {
-      router.push("/invoices");
-      setIsOpen(false);
-    } else if (act.includes("bill") || act.includes("বিল") || act.includes("supplier")) {
-      router.push("/invoices");
-      setIsOpen(false);
-    } else {
-      handleSendMessage(action);
+      return;
     }
+
+    // Pass any actionable command or suggestion to the agent directly
+    handleSendMessage(action);
   };
 
   return (
     <>
-      {/* Floating Trigger Button (Hidden on /pos to prevent overlapping register checkout controls) */}
-      {!isOpen && !isPosPage && (
-        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-3">
-          {/* Mobile: Compact circular FAB so it doesn't block wide content */}
+      {/* Floating Trigger Button */}
+      {!isOpen && (
+        <div className="fixed bottom-24 right-4 md:bottom-6 md:right-6 z-40 flex items-center gap-3">
           <button
             onClick={() => setIsOpen(true)}
-            className="sm:hidden w-11 h-11 rounded-full bg-emerald-950 dark:bg-emerald-950 text-lime-accent hover:bg-forest-action hover:text-white flex items-center justify-center shadow-xl border border-emerald-700/60 transition-all active:scale-95"
-            aria-label="Ask AI Assistant"
-            title="Ask AI Assistant"
+            className="group flex items-center gap-2.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-full bg-emerald-950 dark:bg-emerald-950 text-lime-accent hover:bg-forest-action hover:text-white font-bold text-xs shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-emerald-700/60"
+            aria-label="Open AI Assistant"
           >
             <div className="relative">
-              <Bot className="w-5 h-5 text-lime-accent" />
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-lime-accent group-hover:text-white transition-colors" />
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400" />
             </div>
-          </button>
-
-          {/* Desktop: Pill button */}
-          <button
-            onClick={() => setIsOpen(true)}
-            className="hidden sm:flex group items-center gap-2.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-full bg-emerald-950 dark:bg-emerald-950 text-lime-accent hover:bg-forest-action hover:text-white font-bold text-xs shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-emerald-700/60"
-          >
-            <div className="relative">
-              <Bot className="w-5 h-5 text-lime-accent group-hover:text-white transition-colors" />
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400" />
-            </div>
-            <span className="tracking-wide">Ask AI Assistant</span>
+            <span className="tracking-wide">AI Agent</span>
           </button>
         </div>
       )}
 
       {/* Floating Chat Modal */}
       {isOpen && (
-        <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[430px] h-[540px] max-h-[85vh] bg-surface border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed inset-x-3 bottom-20 sm:inset-auto sm:bottom-6 sm:right-6 z-50 sm:w-[420px] h-[520px] max-h-[75vh] sm:max-h-[85vh] bg-surface border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
           {/* Header */}
-          <div className="px-4 py-3.5 bg-emerald-950 dark:bg-emerald-950 text-white flex items-center justify-between border-b border-emerald-800/60 shrink-0">
+          <div className="px-4 py-3 bg-emerald-950 dark:bg-emerald-950 text-white flex items-center justify-between border-b border-emerald-800/60 shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-lime-accent/20 border border-lime-accent/30 flex items-center justify-center text-lime-accent font-bold">
                 <Bot className="w-4 h-4" />
               </div>
               <div>
-                <div className="font-bold text-xs flex items-center gap-2 text-white">
-                  LEDGER ZERO AI
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[9px] font-bold border ${
-                      hasApiKey
-                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-400/30"
-                        : "bg-amber-500/20 text-amber-300 border-amber-400/30"
-                    }`}
-                  >
-                    {hasApiKey ? "AI CONNECTED" : "KEY REQUIRED"}
-                  </span>
-                </div>
-                <div className="text-[10px] text-white/70">
-                  {hasApiKey ? "Live Conversational Co-Pilot" : "Connect API Key to Activate"}
-                </div>
+                <h3 className="font-semibold text-xs tracking-tight text-white">
+                  AI Financial Assistant
+                </h3>
+                <p className="text-[10px] text-white/70">
+                  Cash, Inventory & Bill Inquiries
+                </p>
               </div>
             </div>
 
@@ -351,6 +323,7 @@ Your AI assistant is now active and querying with live business context. How can
               onClick={() => setIsOpen(false)}
               className="p-1.5 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               title="Close Assistant"
+              aria-label="Close Assistant"
             >
               <X className="w-4 h-4" />
             </button>
@@ -466,25 +439,41 @@ Your AI assistant is now active and querying with live business context. How can
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Starter Question Chips */}
-          <div className="px-3 py-1.5 border-t border-border/60 bg-surface flex items-center gap-1.5 overflow-x-auto shrink-0">
+          {/* Quick Starter Action & Question Chips */}
+          <div className="px-3 py-1.5 border-t border-border/60 bg-surface flex items-center gap-1.5 overflow-x-auto shrink-0 no-scrollbar">
+            <button
+              onClick={() => handleSendMessage("Sell an item (Random POS Sale)")}
+              className="px-2.5 py-1 text-[10px] rounded-full bg-emerald-500/10 hover:bg-forest-action/20 text-forest-action transition-colors border border-forest-action/30 shrink-0 font-semibold flex items-center gap-1"
+            >
+              <span>🛒</span>
+              <span>Sell Item</span>
+            </button>
+            <button
+              onClick={() => handleSendMessage("Generate a random customer invoice")}
+              className="px-2.5 py-1 text-[10px] rounded-full bg-surface-subtle hover:bg-forest-action/10 hover:text-forest-action transition-colors border border-border shrink-0 text-text-dim font-medium flex items-center gap-1"
+            >
+              <span>📄</span>
+              <span>Random Invoice</span>
+            </button>
+            <button
+              onClick={() => handleSendMessage("Generate a random supplier bill")}
+              className="px-2.5 py-1 text-[10px] rounded-full bg-surface-subtle hover:bg-forest-action/10 hover:text-forest-action transition-colors border border-border shrink-0 text-text-dim font-medium flex items-center gap-1"
+            >
+              <span>📦</span>
+              <span>Random Bill</span>
+            </button>
+            <button
+              onClick={() => handleSendMessage("Suggest something to do for my shop")}
+              className="px-2.5 py-1 text-[10px] rounded-full bg-surface-subtle hover:bg-forest-action/10 hover:text-forest-action transition-colors border border-border shrink-0 text-text-dim font-medium flex items-center gap-1"
+            >
+              <span>💡</span>
+              <span>Suggestions</span>
+            </button>
             <button
               onClick={() => handleSendMessage("Will I have enough cash for next week's bills?")}
               className="px-2.5 py-1 text-[10px] rounded-full bg-surface-subtle hover:bg-forest-action/10 hover:text-forest-action transition-colors border border-border shrink-0 text-text-dim font-medium"
             >
               Cash vs Bills?
-            </button>
-            <button
-              onClick={() => handleSendMessage("Check low stock products in inventory")}
-              className="px-2.5 py-1 text-[10px] rounded-full bg-surface-subtle hover:bg-forest-action/10 hover:text-forest-action transition-colors border border-border shrink-0 text-text-dim font-medium"
-            >
-              Low Stock Items?
-            </button>
-            <button
-              onClick={() => handleSendMessage("Which customers have overdue invoices?")}
-              className="px-2.5 py-1 text-[10px] rounded-full bg-surface-subtle hover:bg-forest-action/10 hover:text-forest-action transition-colors border border-border shrink-0 text-text-dim font-medium"
-            >
-              Who Owes Money?
             </button>
           </div>
 

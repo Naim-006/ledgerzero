@@ -150,19 +150,24 @@ export function Sidebar() {
         ))}
       </div>
 
-      {/* Clean Live Status Footer */}
+      {/* Workspace Footer Card */}
       <div className="p-3 border-t border-border">
-        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-surface-subtle border border-border/60">
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+        <Link
+          href="/settings"
+          className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-surface-subtle hover:bg-border/30 border border-border/60 transition-colors"
+        >
+          <div className="w-7 h-7 rounded-lg bg-surface border border-border flex items-center justify-center text-forest-action shrink-0">
+            <Building2 className="w-3.5 h-3.5" />
+          </div>
           <div className="min-w-0 flex-1">
             <div className="text-xs font-semibold text-foreground truncate">
-              {business?.name || "Production Ledger"}
+              {business?.name || "Main Workspace"}
             </div>
             <div className="text-[10px] text-text-dim truncate">
-              Live & Synchronized
+              Workspace Settings
             </div>
           </div>
-        </div>
+        </Link>
       </div>
     </aside>
   );

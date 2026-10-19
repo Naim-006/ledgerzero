@@ -21,12 +21,11 @@ import {
 import { CurrencyAmount } from "@/components/finance/currency-amount";
 import {
   FileText,
-  Upload,
+  Printer,
   Plus,
   Search,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
   CreditCard,
   Eye,
 } from "lucide-react";
@@ -56,19 +55,8 @@ export default function InvoicesPage() {
   const [manualDueDate, setManualDueDate] = useState("2026-10-25");
   const [manualDescription, setManualDescription] = useState("");
 
-  // Optional OCR Upload Modal (Secondary)
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [isExtracting, setIsExtracting] = useState(false);
-  const [extractedData, setExtractedData] = useState<{
-    invoiceNumber: string;
-    counterpartyName: string;
-    direction: InvoiceDirection;
-    totalAmountStr: string;
-    dueDate: string;
-    confidence: number;
-    fieldsConfidence: Record<string, number>;
-  } | null>(null);
+  // Selected Invoice for Invoice-Style Detail View
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
   const loadInvoices = React.useCallback(async () => {
     try {
@@ -131,87 +119,6 @@ export default function InvoicesPage() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Type and size validation
-    const validTypes = ["application/pdf", "image/png", "image/jpeg", "image/webp"];
-    if (!validTypes.includes(file.type)) {
-      alert("Invalid format: Please upload a PDF, PNG, or JPEG file.");
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      alert("File size exceeds 10MB limit.");
-      return;
-    }
-
-    setUploadedFile(file);
-    setIsExtracting(true);
-
-    // Simulate OCR Extraction with high fidelity confidence metrics
-    setTimeout(() => {
-      setExtractedData({
-        invoiceNumber: `INV-${Math.floor(1000 + Math.random() * 9000)}`,
-        counterpartyName: "Pacific Coast Timber Co.",
-        direction: "payable",
-        totalAmountStr: "8500.00",
-        dueDate: "2026-11-05",
-        confidence: 96,
-        fieldsConfidence: {
-          invoiceNumber: 99,
-          counterpartyName: 94,
-          totalAmount: 98,
-          dueDate: 92,
-        },
-      });
-      setIsExtracting(false);
-    }, 1200);
-  };
-
-  const handleCommitExtracted = async () => {
-    if (!extractedData) return;
-    const amountMinor = parseDecimalToMinorUnits(extractedData.totalAmountStr, activeCurrency);
-
-    try {
-      await dataService.createInvoice({
-        businessId: business?.id || "biz_default",
-        direction: extractedData.direction,
-        invoiceNumber: extractedData.invoiceNumber,
-        counterpartyId: "supp-new",
-        counterpartyName: extractedData.counterpartyName,
-        issueDate: "2026-10-18",
-        dueDate: extractedData.dueDate,
-        status: "issued",
-        currency: activeCurrency,
-        lineItems: [
-          {
-            id: `li-${Date.now()}`,
-            description: "Extracted Line Items (Verified by Operator)",
-            quantity: 1,
-            unitPrice: amountMinor,
-            taxRatePercent: 0,
-            subtotal: amountMinor,
-            taxAmount: 0,
-            total: amountMinor,
-          },
-        ],
-        subtotal: amountMinor,
-        taxTotal: 0,
-        totalAmount: amountMinor,
-        amountPaid: 0,
-        extractionConfidence: extractedData.confidence,
-      });
-
-      setIsUploadModalOpen(false);
-      setUploadedFile(null);
-      setExtractedData(null);
-      await loadInvoices();
-    } catch (err) {
-      console.error("Failed to commit invoice:", err);
-    }
-  };
-
   const handleOpenPaymentModal = (inv: Invoice) => {
     setPaymentInvoice(inv);
     const outstanding = (inv.totalAmount - (inv.amountPaid || 0)) / 100;
@@ -271,19 +178,6 @@ export default function InvoicesPage() {
             <Plus className="w-3.5 h-3.5" />
             Create Invoice / Bill
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setUploadedFile(null);
-              setExtractedData(null);
-              setIsUploadModalOpen(true);
-            }}
-            disabled={!permissions.canMutateFinancialRecords}
-          >
-            <Upload className="w-3.5 h-3.5" />
-            Upload File
-          </Button>
         </div>
       </div>
 
@@ -301,11 +195,11 @@ export default function InvoicesPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full md:w-auto">
             <Select
               value={directionFilter}
               onChange={(e) => setDirectionFilter(e.target.value)}
-              className="w-44"
+              className="w-full sm:w-44"
               options={[
                 { value: "all", label: "All Directions" },
                 { value: "receivable", label: "Receivables (Customers)" },
@@ -316,7 +210,7 @@ export default function InvoicesPage() {
             <Select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-40"
+              className="w-full sm:w-40"
               options={[
                 { value: "all", label: "All Statuses" },
                 { value: "issued", label: "Issued (Open)" },
@@ -341,80 +235,98 @@ export default function InvoicesPage() {
             filteredInvoices.map((inv) => {
               const outstanding = Math.max(0, inv.totalAmount - (inv.amountPaid || 0));
               return (
-                <div key={inv.id} className="p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="font-mono font-bold text-xs text-brand-900 dark:text-slate-100">
-                        {inv.invoiceNumber}
+                <div key={inv.id} className="p-4 space-y-3 hover:bg-surface-subtle/50 transition-colors">
+                  <div
+                    onClick={() => setSelectedInvoice(inv)}
+                    className="cursor-pointer space-y-3"
+                    title="Click to view full invoice"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-mono font-bold text-xs text-brand-900 dark:text-slate-100 flex items-center gap-1.5">
+                          <span>{inv.invoiceNumber}</span>
+                          <span className="text-[10px] text-forest-action font-sans font-normal hover:underline flex items-center gap-0.5">
+                            <Eye className="w-3 h-3" /> View
+                          </span>
+                        </div>
+                        <div className="font-medium text-sm text-brand-900 dark:text-slate-200 mt-0.5">
+                          {inv.counterpartyName}
+                        </div>
                       </div>
-                      <div className="font-medium text-sm text-brand-900 dark:text-slate-200 mt-0.5">
-                        {inv.counterpartyName}
+                      <Badge
+                        variant={
+                          inv.status === "paid"
+                            ? "success"
+                            : inv.status === "overdue"
+                            ? "risk"
+                            : inv.status === "partially_paid"
+                            ? "warning"
+                            : "default"
+                        }
+                        size="sm"
+                      >
+                        {inv.status.toUpperCase()}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-brand-700/80 dark:text-slate-400">
+                      <Badge
+                        variant={inv.direction === "receivable" ? "default" : "outline"}
+                        size="sm"
+                      >
+                        {inv.direction === "receivable" ? "RECEIVABLE" : "PAYABLE"}
+                      </Badge>
+                      <span className="font-mono text-[11px]">
+                        Due: {formatShortDate(inv.dueDate)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 border-t border-slateSurface-100 dark:border-slate-800/80">
+                      <div>
+                        <span className="text-[10px] text-brand-700/60 dark:text-slate-400 uppercase tracking-wider block">
+                          Total
+                        </span>
+                        <span className="font-mono font-semibold text-xs text-brand-900 dark:text-slate-100">
+                          <CurrencyAmount amount={inv.totalAmount} />
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-brand-700/60 dark:text-slate-400 uppercase tracking-wider block">
+                          Outstanding
+                        </span>
+                        <span className="font-mono font-bold text-xs">
+                          <CurrencyAmount
+                            amount={outstanding}
+                            colored={outstanding > 0 && inv.status === "overdue"}
+                          />
+                        </span>
                       </div>
                     </div>
-                    <Badge
-                      variant={
-                        inv.status === "paid"
-                          ? "success"
-                          : inv.status === "overdue"
-                          ? "risk"
-                          : inv.status === "partially_paid"
-                          ? "warning"
-                          : "default"
-                      }
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-end gap-2">
+                    <Button
+                      variant="outline"
                       size="sm"
+                      onClick={() => setSelectedInvoice(inv)}
+                      className="text-xs py-1.5 px-2.5 gap-1"
                     >
-                      {inv.status.toUpperCase()}
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs text-brand-700/80 dark:text-slate-400">
-                    <Badge
-                      variant={inv.direction === "receivable" ? "default" : "outline"}
-                      size="sm"
-                    >
-                      {inv.direction === "receivable" ? "RECEIVABLE" : "PAYABLE"}
-                    </Badge>
-                    <span className="font-mono text-[11px]">
-                      Due: {formatShortDate(inv.dueDate)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1 border-t border-slateSurface-100 dark:border-slate-800/80">
-                    <div>
-                      <span className="text-[10px] text-brand-700/60 dark:text-slate-400 uppercase tracking-wider block">
-                        Total
-                      </span>
-                      <span className="font-mono font-semibold text-xs text-brand-900 dark:text-slate-100">
-                        <CurrencyAmount amount={inv.totalAmount} />
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] text-brand-700/60 dark:text-slate-400 uppercase tracking-wider block">
-                        Outstanding
-                      </span>
-                      <span className="font-mono font-bold text-xs">
-                        <CurrencyAmount
-                          amount={outstanding}
-                          colored={outstanding > 0 && inv.status === "overdue"}
-                        />
-                      </span>
-                    </div>
-                  </div>
-
-                  {outstanding > 0 && (
-                    <div className="pt-2 flex justify-end">
+                      <Eye className="w-3.5 h-3.5" />
+                      View Invoice
+                    </Button>
+                    {outstanding > 0 && (
                       <Button
                         variant="secondary"
                         size="sm"
                         onClick={() => handleOpenPaymentModal(inv)}
                         disabled={!permissions.canMutateFinancialRecords}
-                        className="text-xs py-1.5 px-3 w-full sm:w-auto justify-center"
+                        className="text-xs py-1.5 px-3 gap-1"
                       >
                         <CreditCard className="w-3.5 h-3.5" />
                         Record Payment
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               );
             })
@@ -433,7 +345,7 @@ export default function InvoicesPage() {
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Total Amount</TableHead>
                 <TableHead className="text-right">Outstanding</TableHead>
-                <TableHead className="w-24"></TableHead>
+                <TableHead className="w-28 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -447,14 +359,14 @@ export default function InvoicesPage() {
                 filteredInvoices.map((inv) => {
                   const outstanding = Math.max(0, inv.totalAmount - (inv.amountPaid || 0));
                   return (
-                    <TableRow key={inv.id}>
+                    <TableRow
+                      key={inv.id}
+                      onClick={() => setSelectedInvoice(inv)}
+                      className="cursor-pointer hover:bg-surface-subtle/70 transition-colors"
+                      title="Click to view full invoice"
+                    >
                       <TableCell className="font-mono font-bold text-xs text-brand-900">
                         {inv.invoiceNumber}
-                        {inv.extractionConfidence && (
-                          <span className="block text-[10px] text-brand-700/60 font-normal">
-                            OCR: {inv.extractionConfidence}%
-                          </span>
-                        )}
                       </TableCell>
                       <TableCell className="font-medium text-brand-900">
                         {inv.counterpartyName}
@@ -495,19 +407,30 @@ export default function InvoicesPage() {
                           colored={outstanding > 0 && inv.status === "overdue"}
                         />
                       </TableCell>
-                      <TableCell className="text-right">
-                        {outstanding > 0 && (
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-end gap-1.5">
                           <Button
-                            variant="secondary"
+                            variant="outline"
                             size="sm"
-                            onClick={() => handleOpenPaymentModal(inv)}
-                            disabled={!permissions.canMutateFinancialRecords}
-                            className="text-[11px] py-1 px-2"
+                            onClick={() => setSelectedInvoice(inv)}
+                            className="text-[11px] py-1 px-2 gap-1"
+                            title="View Invoice"
                           >
-                            <CreditCard className="w-3 h-3" />
-                            Pay
+                            <Eye className="w-3 h-3" />
                           </Button>
-                        )}
+                          {outstanding > 0 && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleOpenPaymentModal(inv)}
+                              disabled={!permissions.canMutateFinancialRecords}
+                              className="text-[11px] py-1 px-2 gap-1"
+                            >
+                              <CreditCard className="w-3 h-3" />
+                              Pay
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -518,157 +441,213 @@ export default function InvoicesPage() {
         </div>
       </Card>
 
-      {/* Smart Invoice & Receipt Upload & Review Modal */}
-      <Modal
-        isOpen={isUploadModalOpen}
-        onClose={() => setIsUploadModalOpen(false)}
-        title="Smart Invoice & Receipt Ingestion"
-        description="Upload invoice PDF or receipt image for automated data extraction and human verification"
-        maxWidth="xl"
-      >
-        <div className="space-y-4 text-xs">
-          {!uploadedFile && (
-            <div className="p-8 border-2 border-dashed border-slateSurface-300 rounded-xl text-center space-y-2">
-              <Upload className="w-8 h-8 text-forest-action mx-auto" />
-              <div>
-                <p className="font-semibold text-brand-900">Upload Invoice / Receipt (PDF / PNG / JPEG)</p>
-                <p className="text-[11px] text-brand-700/60 mt-0.5">
-                  Max file size: 10MB. Automated parser extracts vendor, amount, line items, and due date.
+      {/* Invoice Detail Modal (Invoice Style) */}
+      {selectedInvoice && (
+        <Modal
+          isOpen={!!selectedInvoice}
+          onClose={() => setSelectedInvoice(null)}
+          title={`Invoice ${selectedInvoice.invoiceNumber}`}
+          maxWidth="lg"
+        >
+          <div className="space-y-5 text-xs text-foreground p-1 select-none">
+            {/* Top Bar of the Invoice Paper */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-border">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-950 flex items-center justify-center text-lime-accent font-black text-sm shadow-xs">
+                  Ø
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-foreground">
+                    {business?.legalName || business?.name || "Business Entity"}
+                  </h3>
+                  <p className="text-[11px] text-text-dim">
+                    {business?.countryCode === "CN" ? "China (RMB) Registered SME" : "Registered Business"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="text-left sm:text-right space-y-1">
+                <div className="flex items-center gap-2 sm:justify-end">
+                  <span className="font-mono font-black text-base tracking-tight text-foreground">
+                    {selectedInvoice.invoiceNumber}
+                  </span>
+                  <Badge
+                    variant={
+                      selectedInvoice.status === "paid"
+                        ? "success"
+                        : selectedInvoice.status === "overdue"
+                        ? "risk"
+                        : selectedInvoice.status === "partially_paid"
+                        ? "warning"
+                        : "default"
+                    }
+                    size="sm"
+                  >
+                    {selectedInvoice.status.toUpperCase()}
+                  </Badge>
+                </div>
+                <div className="text-[11px] text-text-dim flex items-center gap-2 sm:justify-end">
+                  <span>Type: <strong className="text-foreground uppercase">{selectedInvoice.direction}</strong></span>
+                  <span>·</span>
+                  <span>Currency: <strong className="text-foreground">{selectedInvoice.currency}</strong></span>
+                </div>
+              </div>
+            </div>
+
+            {/* Billing Metadata Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-surface-subtle border border-border/80">
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-text-dim">
+                  {selectedInvoice.direction === "receivable" ? "Billed To (Customer)" : "Bill From (Vendor / Supplier)"}
+                </span>
+                <p className="text-sm font-bold text-foreground">
+                  {selectedInvoice.counterpartyName}
+                </p>
+                <p className="text-[11px] text-text-dim">
+                  ID: <span className="font-mono">{selectedInvoice.counterpartyId}</span>
                 </p>
               </div>
-              <input
-                type="file"
-                accept=".pdf,.png,.jpg,.jpeg,.webp"
-                onChange={handleFileChange}
-                className="block mx-auto text-xs text-brand-700 file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slateSurface-100 file:text-forest hover:file:bg-slateSurface-200 cursor-pointer"
-              />
-            </div>
-          )}
 
-          {isExtracting && (
-            <div className="p-8 text-center space-y-2">
-              <Sparkles className="w-6 h-6 text-lime-accent mx-auto animate-spin" />
-              <p className="font-semibold text-brand-900">Running AI document parser...</p>
-              <p className="text-[11px] text-brand-700/60">
-                Extracting metadata, line items, tax totals, and due date.
-              </p>
+              <div className="space-y-1 sm:text-right">
+                <div className="flex justify-between sm:justify-end gap-3 text-[11px]">
+                  <span className="text-text-dim">Issue Date:</span>
+                  <span className="font-mono font-medium text-foreground">{formatShortDate(selectedInvoice.issueDate)}</span>
+                </div>
+                <div className="flex justify-between sm:justify-end gap-3 text-[11px]">
+                  <span className="text-text-dim">Payment Due Date:</span>
+                  <span className="font-mono font-bold text-foreground">{formatShortDate(selectedInvoice.dueDate)}</span>
+                </div>
+                <div className="flex justify-between sm:justify-end gap-3 text-[11px]">
+                  <span className="text-text-dim">Payment Terms:</span>
+                  <span className="font-medium text-foreground">Standard Net 30</span>
+                </div>
+              </div>
             </div>
-          )}
 
-          {extractedData && (
-            <div className="space-y-3">
-              <div className="p-3 bg-brand-50 border border-brand-200 rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-forest-action" />
-                  <span className="font-semibold text-forest">
-                    Automated Extraction Completed ({extractedData.confidence}% Confidence)
+            {/* Line Items Table (Invoice Style) */}
+            <div className="overflow-hidden rounded-xl border border-border">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-surface-subtle border-b border-border text-[11px] font-semibold text-text-dim uppercase">
+                  <tr>
+                    <th className="py-2.5 px-3">Item Description</th>
+                    <th className="py-2.5 px-3 text-center">Qty</th>
+                    <th className="py-2.5 px-3 text-right">Unit Price</th>
+                    <th className="py-2.5 px-3 text-right">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {selectedInvoice.lineItems && selectedInvoice.lineItems.length > 0 ? (
+                    selectedInvoice.lineItems.map((item, idx) => (
+                      <tr key={item.id || idx}>
+                        <td className="py-2.5 px-3 font-medium text-foreground">{item.description}</td>
+                        <td className="py-2.5 px-3 text-center text-text-dim font-mono">{item.quantity}</td>
+                        <td className="py-2.5 px-3 text-right text-text-dim font-mono">
+                          <CurrencyAmount amount={item.unitPrice} />
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-bold text-foreground font-mono">
+                          <CurrencyAmount amount={item.total || item.subtotal} />
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td className="py-3 px-3 font-medium text-foreground">
+                        {selectedInvoice.direction === "receivable" ? "Commercial Goods & Services Provided" : "Vendor Supplies & Operational Expense"}
+                      </td>
+                      <td className="py-3 px-3 text-center text-text-dim font-mono">1</td>
+                      <td className="py-3 px-3 text-right text-text-dim font-mono">
+                        <CurrencyAmount amount={selectedInvoice.subtotal} />
+                      </td>
+                      <td className="py-3 px-3 text-right font-bold text-foreground font-mono">
+                        <CurrencyAmount amount={selectedInvoice.subtotal} />
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Financial Summary & Balance Due */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 pt-2">
+              <div className="text-[11px] text-text-dim max-w-xs space-y-1">
+                <p className="font-semibold text-foreground">Settlement Status:</p>
+                <p>
+                  {selectedInvoice.status === "paid"
+                    ? "Full settlement confirmed in ledger."
+                    : "Outstanding balance due per agreed terms."}
+                </p>
+              </div>
+
+              <div className="w-full sm:w-64 space-y-1.5 p-3 rounded-xl bg-surface-subtle border border-border">
+                <div className="flex justify-between text-xs text-text-dim">
+                  <span>Subtotal:</span>
+                  <span className="font-mono text-foreground"><CurrencyAmount amount={selectedInvoice.subtotal} /></span>
+                </div>
+                <div className="flex justify-between text-xs text-text-dim">
+                  <span>Tax:</span>
+                  <span className="font-mono text-foreground"><CurrencyAmount amount={selectedInvoice.taxTotal} /></span>
+                </div>
+                <div className="flex justify-between text-sm font-bold text-foreground pt-1 border-t border-border/80">
+                  <span>Total Amount:</span>
+                  <span className="font-mono text-base"><CurrencyAmount amount={selectedInvoice.totalAmount} /></span>
+                </div>
+                <div className="flex justify-between text-xs text-emerald-600 dark:text-emerald-400">
+                  <span>Amount Paid:</span>
+                  <span className="font-mono"><CurrencyAmount amount={selectedInvoice.amountPaid || 0} /></span>
+                </div>
+                <div className="flex justify-between text-xs font-bold text-rose-600 dark:text-rose-400 pt-1 border-t border-border/60">
+                  <span>Balance Due:</span>
+                  <span className="font-mono text-sm">
+                    <CurrencyAmount amount={Math.max(0, selectedInvoice.totalAmount - (selectedInvoice.amountPaid || 0))} />
                   </span>
                 </div>
-                <Badge variant="lime" size="sm">
-                  AI Parsed
-                </Badge>
-              </div>
-
-              {/* Duplicate Warning check */}
-              {invoices.some((i) => i.invoiceNumber === extractedData.invoiceNumber) && (
-                <div className="p-2.5 bg-warning-50 border border-warning-200 rounded-lg text-warning-900 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-warning-600 shrink-0" />
-                  <span>Warning: An invoice with number {extractedData.invoiceNumber} already exists in the ledger.</span>
-                </div>
-              )}
-
-              {/* Editable Fields with Per-Field Confidence */}
-              <div className="space-y-3 p-4 bg-slateSurface-50 rounded-xl">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-brand-900">Invoice Number</span>
-                    <Badge variant="success" size="sm">
-                      {extractedData.fieldsConfidence.invoiceNumber}% confidence
-                    </Badge>
-                  </div>
-                  <Input
-                    value={extractedData.invoiceNumber}
-                    onChange={(e) =>
-                      setExtractedData({ ...extractedData, invoiceNumber: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-semibold text-brand-900">Counterparty Name</span>
-                    <Badge variant="success" size="sm">
-                      {extractedData.fieldsConfidence.counterpartyName}% confidence
-                    </Badge>
-                  </div>
-                  <Input
-                    value={extractedData.counterpartyName}
-                    onChange={(e) =>
-                      setExtractedData({ ...extractedData, counterpartyName: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold text-brand-900">Total Amount</span>
-                      <Badge variant="success" size="sm">
-                        {extractedData.fieldsConfidence.totalAmount}% confidence
-                      </Badge>
-                    </div>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={extractedData.totalAmountStr}
-                      onChange={(e) =>
-                        setExtractedData({ ...extractedData, totalAmountStr: e.target.value })
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold text-brand-900">Due Date</span>
-                      <Badge variant="success" size="sm">
-                        {extractedData.fieldsConfidence.dueDate}% confidence
-                      </Badge>
-                    </div>
-                    <Input
-                      type="date"
-                      value={extractedData.dueDate}
-                      onChange={(e) =>
-                        setExtractedData({ ...extractedData, dueDate: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
               </div>
             </div>
-          )}
 
-          <div className="pt-4 border-t border-slateSurface-100 flex items-center justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsUploadModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            {extractedData && (
+            {/* Action Buttons */}
+            <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-2">
               <Button
-                variant="primary"
+                type="button"
+                variant="outline"
                 size="sm"
-                onClick={handleCommitExtracted}
-                disabled={!permissions.canMutateFinancialRecords}
+                onClick={() => window.print()}
+                className="gap-1.5 text-xs"
               >
-                Save Bill to System
+                <Printer className="w-3.5 h-3.5" />
+                Print
               </Button>
-            )}
+
+              <div className="flex items-center gap-2">
+                {Math.max(0, selectedInvoice.totalAmount - (selectedInvoice.amountPaid || 0)) > 0 && (
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      const inv = selectedInvoice;
+                      setSelectedInvoice(null);
+                      handleOpenPaymentModal(inv);
+                    }}
+                    className="gap-1.5 text-xs"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    Record Payment
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedInvoice(null)}
+                  className="text-xs"
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
-      </Modal>
+        </Modal>
+      )}
 
       {/* Record Payment Modal */}
       {paymentInvoice && (

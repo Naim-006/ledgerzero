@@ -61,7 +61,7 @@ export function AgingChart({ buckets, height = 240 }: { buckets: AgingBucket[]; 
             tickLine={false}
             axisLine={false}
             tick={{ fill: textColor, fontSize: 11 }}
-            tickFormatter={(val) => `$${val.toLocaleString()}`}
+            tickFormatter={(val) => `${countryConfig.currencySymbol}${val.toLocaleString()}`}
           />
           <Tooltip
             content={({ active, payload }) => {

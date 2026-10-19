@@ -148,11 +148,11 @@ export default function TransactionsPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full md:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full md:w-auto">
             <Select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="w-36"
+              className="w-full sm:w-36"
               options={[
                 { value: "all", label: "All Types" },
                 { value: "income", label: "Income (+)" },
@@ -163,7 +163,7 @@ export default function TransactionsPage() {
             <Select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-48"
+              className="w-full sm:w-48"
               options={[
                 { value: "all", label: "All Categories" },
                 { value: "revenue_sales", label: "Sales Revenue" },
