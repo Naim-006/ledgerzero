@@ -202,6 +202,20 @@ export default function AdminPortalPage() {
     loadSettingsAndData();
   }, []);
 
+  // Guarantee dark background across entire html/body viewport to prevent white gaps
+  useEffect(() => {
+    const prevBodyBg = document.body.style.backgroundColor;
+    const prevHtmlBg = document.documentElement.style.backgroundColor;
+    document.body.style.backgroundColor = "#020617";
+    document.documentElement.style.backgroundColor = "#020617";
+    document.documentElement.classList.add("dark");
+
+    return () => {
+      document.body.style.backgroundColor = prevBodyBg;
+      document.documentElement.style.backgroundColor = prevHtmlBg;
+    };
+  }, []);
+
   // Admin login handler
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -334,7 +348,7 @@ export default function AdminPortalPage() {
   // -------------------------------------------------------------
   if (!isAdminLoggedIn) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center p-4">
+      <div className="min-h-dvh w-full bg-slate-950 text-slate-100 flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-6">
           <div className="text-center space-y-2">
             <div className="w-12 h-12 rounded-2xl bg-emerald-500 text-slate-950 font-black text-xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
@@ -435,7 +449,7 @@ export default function AdminPortalPage() {
   // VIEW: Master Admin Console (Authenticated)
   // -------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-dvh w-full bg-slate-950 text-slate-100 flex flex-col font-sans">
       {/* Top Header */}
       <header className="h-16 bg-slate-900 border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between shrink-0 sticky top-0 z-30">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">

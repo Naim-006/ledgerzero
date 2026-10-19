@@ -105,7 +105,7 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
         {navigationGroups.map((group) => (
           <div key={group.label}>
-            <div className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-dim/80">
+            <div className="px-3 mb-1.5 text-[10px] font-bold uppercase tracking-wider text-text-dim dark:text-emerald-400/80">
               {group.label}
             </div>
             <nav className="space-y-0.5">
@@ -122,7 +122,7 @@ export function Sidebar() {
                       "flex items-center justify-between px-3 py-2 text-xs font-medium rounded-lg transition-colors group",
                       isActive
                         ? "bg-forest-action/10 text-forest-action font-semibold dark:bg-forest-action/20"
-                        : "text-foreground/80 hover:bg-surface-subtle hover:text-foreground"
+                        : "text-foreground/85 hover:bg-surface-subtle hover:text-foreground dark:text-slate-200 dark:hover:text-white"
                     )}
                   >
                     <div className="flex items-center gap-2.5">
@@ -131,7 +131,7 @@ export function Sidebar() {
                           "w-4 h-4 shrink-0 transition-colors",
                           isActive
                             ? "text-forest-action"
-                            : "text-text-dim group-hover:text-foreground"
+                            : "text-text-dim group-hover:text-foreground dark:text-slate-400 dark:group-hover:text-white"
                         )}
                       />
                       <span className="truncate">{item.name}</span>

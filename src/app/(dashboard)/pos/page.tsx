@@ -380,7 +380,7 @@ export default function PosPage() {
                 <Button
                   size="sm"
                   onClick={initializeStarterInventory}
-                  className="bg-forest text-white text-xs gap-1.5"
+                  className="bg-forest-action hover:bg-forest-actionHover text-white text-xs gap-1.5"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-lime-accent" />
                   Load Starter Inventory (8 Items)

@@ -49,12 +49,12 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
-          <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-foreground tracking-tight flex items-center gap-2">
             System Settings & Profile
           </h1>
-          <p className="text-xs text-brand-700/70 mt-1">
+          <p className="text-xs text-text-dim mt-1">
             Configure business entity profile, tax identifiers, jurisdictional rules, and display preferences.
           </p>
         </div>
@@ -135,7 +135,7 @@ export default function SettingsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-xs">
-              <p className="text-brand-700/70">
+              <p className="text-text-dim text-xs">
                 Choose your preferred interface theme. Setting will be stored in your browser.
               </p>
               <div className="grid grid-cols-3 gap-3 pt-1">
@@ -144,8 +144,8 @@ export default function SettingsPage() {
                   onClick={() => setTheme("light")}
                   className={`p-3 rounded-xl border text-center flex flex-col items-center gap-2 transition-all ${
                     theme === "light"
-                      ? "border-forest-action bg-brand-50 font-bold text-forest"
-                      : "border-slateSurface-200 hover:bg-slateSurface-100 text-brand-800"
+                      ? "border-forest-action bg-forest-action/15 font-bold text-forest-action"
+                      : "border-border hover:bg-surface-subtle text-foreground"
                   }`}
                 >
                   <Sun className="w-5 h-5 text-amber-500" />
@@ -157,8 +157,8 @@ export default function SettingsPage() {
                   onClick={() => setTheme("dark")}
                   className={`p-3 rounded-xl border text-center flex flex-col items-center gap-2 transition-all ${
                     theme === "dark"
-                      ? "border-forest-action bg-brand-50 font-bold text-forest"
-                      : "border-slateSurface-200 hover:bg-slateSurface-100 text-brand-800"
+                      ? "border-forest-action bg-forest-action/15 font-bold text-forest-action"
+                      : "border-border hover:bg-surface-subtle text-foreground"
                   }`}
                 >
                   <Moon className="w-5 h-5 text-lime-accent" />
@@ -170,11 +170,11 @@ export default function SettingsPage() {
                   onClick={() => setTheme("system")}
                   className={`p-3 rounded-xl border text-center flex flex-col items-center gap-2 transition-all ${
                     theme === "system"
-                      ? "border-forest-action bg-brand-50 font-bold text-forest"
-                      : "border-slateSurface-200 hover:bg-slateSurface-100 text-brand-800"
+                      ? "border-forest-action bg-forest-action/15 font-bold text-forest-action"
+                      : "border-border hover:bg-surface-subtle text-foreground"
                   }`}
                 >
-                  <Laptop className="w-5 h-5 text-brand-700" />
+                  <Laptop className="w-5 h-5 text-text-dim" />
                   <span>System</span>
                 </button>
               </div>

@@ -276,11 +276,11 @@ export default function CashFlowSimulatorPage() {
 
           <div className="flex items-center gap-2">
             <span className="text-xs text-brand-700/70">Window:</span>
-            <div className="flex items-center gap-1 bg-slateSurface-100 p-1 rounded-lg border border-slateSurface-200">
+            <div className="flex items-center gap-1 bg-surface-subtle p-1 rounded-lg border border-border">
               <button
                 onClick={() => setForecastDays(14)}
                 className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
-                  forecastDays === 14 ? "bg-surface text-forest font-bold shadow-xs border border-slateSurface-200" : "text-brand-700 hover:text-brand-900"
+                  forecastDays === 14 ? "bg-surface text-foreground font-bold shadow-xs border border-border" : "text-text-dim hover:text-foreground"
                 }`}
               >
                 14 Days
@@ -288,7 +288,7 @@ export default function CashFlowSimulatorPage() {
               <button
                 onClick={() => setForecastDays(30)}
                 className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors ${
-                  forecastDays === 30 ? "bg-surface text-forest font-bold shadow-xs border border-slateSurface-200" : "text-brand-700 hover:text-brand-900"
+                  forecastDays === 30 ? "bg-surface text-foreground font-bold shadow-xs border border-border" : "text-text-dim hover:text-foreground"
                 }`}
               >
                 30 Days

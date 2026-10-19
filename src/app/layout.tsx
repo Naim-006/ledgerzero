@@ -33,7 +33,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="h-full bg-background text-forest antialiased flex flex-col">
+      <body className="min-h-full bg-background text-foreground antialiased flex flex-col">
         <AppProvider>{children}</AppProvider>
       </body>
     </html>

@@ -11,18 +11,24 @@
 
 :root {
   --background: #F5F7F5;
+  --background-rgb: 245 247 245;
   --foreground: #111A14;
+  --foreground-rgb: 17 26 20;
   --surface: #FFFFFF;
+  --surface-rgb: 255 255 255;
   --surface-subtle: #F0F3F1;
   --border: #E0E6E2;
   --border-subtle: #ECF0ED;
   --forest: #14532D;
+  --forest-rgb: 20 83 45;
   --forest-action: #14532D;
   --forest-action-hover: #166534;
   --lime-accent: #D9F99D;
   --lime-accent-hover: #BEF264;
   --text-muted: #3D5247;
+  --text-muted-rgb: 61 82 71;
   --text-dim: #536B5C;
+  --text-dim-rgb: 83 107 92;
   --chart-grid: #E0E6E2;
   --chart-text: #4B6354;
   --chart-line: #14532D;
@@ -44,18 +50,24 @@
 
 .dark {
   --background: #0A1510;
+  --background-rgb: 10 21 16;
   --foreground: #EFF6F1;
+  --foreground-rgb: 239 246 241;
   --surface: #111C15;
+  --surface-rgb: 17 28 21;
   --surface-subtle: #162219;
   --border: #1E3127;
   --border-subtle: #172820;
-  --forest: #164E2E;
+  --forest: #EFF6F1;
+  --forest-rgb: 239 246 241;
   --forest-action: #22C55E;
   --forest-action-hover: #16A34A;
   --lime-accent: #BEF264;
   --lime-accent-hover: #D9F99D;
   --text-muted: #C4D6CC;
-  --text-dim: #8CA898;
+  --text-muted-rgb: 196 214 204;
+  --text-dim: #94A3B8;
+  --text-dim-rgb: 148 163 184;
   --chart-grid: #1A2E23;
   --chart-text: #8CA898;
   --chart-line: #4ADE80;
@@ -98,6 +110,12 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
   font-size: 14px;
   line-height: 1.5;
+}
+
+/* Ensure Admin Console never leaks light background on mobile or overscroll */
+html:has(.admin-console-root),
+body:has(.admin-console-root) {
+  background-color: #020617 !important;
 }
 
 /* ============================================================
