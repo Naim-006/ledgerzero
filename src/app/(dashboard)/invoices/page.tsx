@@ -253,15 +253,9 @@ export default function InvoicesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
         <div>
-          <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Invoices & Documents
-            <Badge variant="outline" size="sm">
-              {invoices.length} Documents
-            </Badge>
+          <h1 className="text-2xl font-bold text-forest tracking-tight">
+            Bills & Invoices
           </h1>
-          <p className="text-xs text-brand-700/70 mt-1">
-            Track customer sales invoices and supplier bills with automated AI document ingestion.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -335,100 +329,193 @@ export default function InvoicesPage() {
         </div>
       </Card>
 
-      {/* Invoices Table */}
+      {/* Invoices List / Table */}
       <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Invoice #</TableHead>
-              <TableHead>Counterparty</TableHead>
-              <TableHead>Direction</TableHead>
-              <TableHead>Due Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Total Amount</TableHead>
-              <TableHead className="text-right">Outstanding</TableHead>
-              <TableHead className="w-24"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredInvoices.length === 0 ? (
+        {/* Mobile View */}
+        <div className="md:hidden divide-y divide-slateSurface-200 dark:divide-slate-800">
+          {filteredInvoices.length === 0 ? (
+            <div className="text-center py-8 text-brand-700/60 dark:text-slate-400 text-xs">
+              No invoices found matching current criteria.
+            </div>
+          ) : (
+            filteredInvoices.map((inv) => {
+              const outstanding = Math.max(0, inv.totalAmount - (inv.amountPaid || 0));
+              return (
+                <div key={inv.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="font-mono font-bold text-xs text-brand-900 dark:text-slate-100">
+                        {inv.invoiceNumber}
+                      </div>
+                      <div className="font-medium text-sm text-brand-900 dark:text-slate-200 mt-0.5">
+                        {inv.counterpartyName}
+                      </div>
+                    </div>
+                    <Badge
+                      variant={
+                        inv.status === "paid"
+                          ? "success"
+                          : inv.status === "overdue"
+                          ? "risk"
+                          : inv.status === "partially_paid"
+                          ? "warning"
+                          : "default"
+                      }
+                      size="sm"
+                    >
+                      {inv.status.toUpperCase()}
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs text-brand-700/80 dark:text-slate-400">
+                    <Badge
+                      variant={inv.direction === "receivable" ? "default" : "outline"}
+                      size="sm"
+                    >
+                      {inv.direction === "receivable" ? "RECEIVABLE" : "PAYABLE"}
+                    </Badge>
+                    <span className="font-mono text-[11px]">
+                      Due: {formatShortDate(inv.dueDate)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1 border-t border-slateSurface-100 dark:border-slate-800/80">
+                    <div>
+                      <span className="text-[10px] text-brand-700/60 dark:text-slate-400 uppercase tracking-wider block">
+                        Total
+                      </span>
+                      <span className="font-mono font-semibold text-xs text-brand-900 dark:text-slate-100">
+                        <CurrencyAmount amount={inv.totalAmount} />
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-brand-700/60 dark:text-slate-400 uppercase tracking-wider block">
+                        Outstanding
+                      </span>
+                      <span className="font-mono font-bold text-xs">
+                        <CurrencyAmount
+                          amount={outstanding}
+                          colored={outstanding > 0 && inv.status === "overdue"}
+                        />
+                      </span>
+                    </div>
+                  </div>
+
+                  {outstanding > 0 && (
+                    <div className="pt-2 flex justify-end">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleOpenPaymentModal(inv)}
+                        disabled={!permissions.canMutateFinancialRecords}
+                        className="text-xs py-1.5 px-3 w-full sm:w-auto justify-center"
+                      >
+                        <CreditCard className="w-3.5 h-3.5" />
+                        Record Payment
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-brand-700/60">
-                  No invoices found matching current criteria.
-                </TableCell>
+                <TableHead>Invoice #</TableHead>
+                <TableHead>Counterparty</TableHead>
+                <TableHead>Direction</TableHead>
+                <TableHead>Due Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Total Amount</TableHead>
+                <TableHead className="text-right">Outstanding</TableHead>
+                <TableHead className="w-24"></TableHead>
               </TableRow>
-            ) : (
-              filteredInvoices.map((inv) => {
-                const outstanding = Math.max(0, inv.totalAmount - (inv.amountPaid || 0));
-                return (
-                  <TableRow key={inv.id}>
-                    <TableCell className="font-mono font-bold text-xs text-brand-900">
-                      {inv.invoiceNumber}
-                      {inv.extractionConfidence && (
-                        <span className="block text-[10px] text-brand-700/60 font-normal">
-                          OCR: {inv.extractionConfidence}%
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-medium text-brand-900">
-                      {inv.counterpartyName}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={inv.direction === "receivable" ? "default" : "outline"}
-                        size="sm"
-                      >
-                        {inv.direction === "receivable" ? "RECEIVABLE" : "PAYABLE"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs text-brand-700">
-                      {formatShortDate(inv.dueDate)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          inv.status === "paid"
-                            ? "success"
-                            : inv.status === "overdue"
-                            ? "risk"
-                            : inv.status === "partially_paid"
-                            ? "warning"
-                            : "default"
-                        }
-                        size="sm"
-                      >
-                        {inv.status.toUpperCase()}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-mono font-semibold">
-                      <CurrencyAmount amount={inv.totalAmount} />
-                    </TableCell>
-                    <TableCell className="text-right font-mono font-bold">
-                      <CurrencyAmount
-                        amount={outstanding}
-                        colored={outstanding > 0 && inv.status === "overdue"}
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {outstanding > 0 && (
-                        <Button
-                          variant="secondary"
+            </TableHeader>
+            <TableBody>
+              {filteredInvoices.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8 text-brand-700/60">
+                    No invoices found matching current criteria.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredInvoices.map((inv) => {
+                  const outstanding = Math.max(0, inv.totalAmount - (inv.amountPaid || 0));
+                  return (
+                    <TableRow key={inv.id}>
+                      <TableCell className="font-mono font-bold text-xs text-brand-900">
+                        {inv.invoiceNumber}
+                        {inv.extractionConfidence && (
+                          <span className="block text-[10px] text-brand-700/60 font-normal">
+                            OCR: {inv.extractionConfidence}%
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium text-brand-900">
+                        {inv.counterpartyName}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={inv.direction === "receivable" ? "default" : "outline"}
                           size="sm"
-                          onClick={() => handleOpenPaymentModal(inv)}
-                          disabled={!permissions.canMutateFinancialRecords}
-                          className="text-[11px] py-1 px-2"
                         >
-                          <CreditCard className="w-3 h-3" />
-                          Pay
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
+                          {inv.direction === "receivable" ? "RECEIVABLE" : "PAYABLE"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs text-brand-700">
+                        {formatShortDate(inv.dueDate)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            inv.status === "paid"
+                              ? "success"
+                              : inv.status === "overdue"
+                              ? "risk"
+                              : inv.status === "partially_paid"
+                              ? "warning"
+                              : "default"
+                          }
+                          size="sm"
+                        >
+                          {inv.status.toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-semibold">
+                        <CurrencyAmount amount={inv.totalAmount} />
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-bold">
+                        <CurrencyAmount
+                          amount={outstanding}
+                          colored={outstanding > 0 && inv.status === "overdue"}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {outstanding > 0 && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleOpenPaymentModal(inv)}
+                            disabled={!permissions.canMutateFinancialRecords}
+                            className="text-[11px] py-1 px-2"
+                          >
+                            <CreditCard className="w-3 h-3" />
+                            Pay
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
 
       {/* Smart Invoice & Receipt Upload & Review Modal */}

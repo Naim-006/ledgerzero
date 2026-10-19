@@ -355,11 +355,8 @@ export default function AdminPortalPage() {
               Ø
             </div>
             <h1 className="text-xl font-bold text-white tracking-tight">
-              Master Admin Portal
+              Admin Portal
             </h1>
-            <p className="text-xs text-slate-400">
-              Manage system settings, AI API keys, and business accounts.
-            </p>
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-5 shadow-xl">
@@ -504,7 +501,7 @@ export default function AdminPortalPage() {
               {businesses.length}
             </div>
             <div className="text-[11px] text-emerald-400/80 mt-1">
-              Active tenant workspaces
+              Active workspaces
             </div>
           </div>
 
@@ -517,7 +514,7 @@ export default function AdminPortalPage() {
               {users.length}
             </div>
             <div className="text-[11px] text-slate-400 mt-1">
-              1 Master Admin, {Math.max(0, users.length - 1)} Business Users
+              Registered accounts
             </div>
           </div>
 
@@ -532,7 +529,7 @@ export default function AdminPortalPage() {
               </span>
             </div>
             <div className="text-[11px] text-slate-400 mt-1">
-              {aiApiKey ? `${detectedAI.provider} (${detectedAI.model})` : "Please connect API key below"}
+              {aiApiKey ? `${detectedAI.provider} (${detectedAI.model})` : "Configure API key below"}
             </div>
           </div>
 
@@ -545,7 +542,7 @@ export default function AdminPortalPage() {
               Supabase Live
             </div>
             <div className="text-[11px] text-slate-400 mt-1">
-              PostgreSQL Cloud Connected
+              PostgreSQL Connected
             </div>
           </div>
         </div>
@@ -553,10 +550,10 @@ export default function AdminPortalPage() {
         {/* Tab Navigation */}
         <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto scrollbar-none flex-nowrap">
           {[
-            { id: "ai", label: "AI Intelligence & API Key", icon: Key },
-            { id: "businesses", label: "Shops & Businesses", icon: Building },
-            { id: "users", label: "User Accounts", icon: Users },
-            { id: "diagnostics", label: "System Diagnostics", icon: Sliders },
+            { id: "ai", label: "AI Configuration", icon: Key },
+            { id: "businesses", label: "Shops", icon: Building },
+            { id: "users", label: "Users", icon: Users },
+            { id: "diagnostics", label: "Diagnostics", icon: Sliders },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -747,8 +744,7 @@ export default function AdminPortalPage() {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-white">Registered Business Shops</h3>
-                <p className="text-xs text-slate-400">All tenant workspaces active in the system</p>
+                <h3 className="text-base font-bold text-white">Registered Shops</h3>
               </div>
             </div>
 
@@ -802,8 +798,7 @@ export default function AdminPortalPage() {
         {activeTab === "users" && (
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
             <div>
-              <h3 className="text-base font-bold text-white">System User Accounts</h3>
-              <p className="text-xs text-slate-400">Authenticated user accounts and access roles</p>
+              <h3 className="text-base font-bold text-white">User Accounts</h3>
             </div>
 
             <div className="overflow-x-auto border border-slate-800 rounded-xl scrollbar-thin">

@@ -49,15 +49,9 @@ export default function AuditLogsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
         <div>
-          <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Activity History
-            <Badge variant="outline" size="sm">
-              Verified Log
-            </Badge>
+          <h1 className="text-2xl font-bold text-forest tracking-tight">
+            Audit Logs
           </h1>
-          <p className="text-xs text-brand-700/70 mt-1">
-            Full history of all actions taken by the AI assistant and shop owner.
-          </p>
         </div>
       </div>
 

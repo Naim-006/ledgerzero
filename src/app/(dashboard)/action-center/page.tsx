@@ -125,25 +125,25 @@ function ActionCenterContent() {
   });
 
   const tabs = [
-    { id: "all", label: "All Actions", count: tasks.length },
+    { id: "all", label: "All", count: tasks.length },
     {
       id: "pending",
-      label: "Pending Approval",
+      label: "Pending",
       count: tasks.filter((t) => t.status === "pending_approval").length,
     },
     {
       id: "approved",
-      label: "Approved & Executing",
+      label: "Approved",
       count: tasks.filter((t) => t.status === "approved" || t.status === "executing").length,
     },
     {
       id: "completed",
-      label: "Verified & Completed",
+      label: "Completed",
       count: tasks.filter((t) => t.status === "completed").length,
     },
     {
       id: "rejected",
-      label: "Rejected / Cancelled",
+      label: "Rejected",
       count: tasks.filter((t) => t.status === "rejected" || t.status === "cancelled").length,
     },
   ];
@@ -157,15 +157,9 @@ function ActionCenterContent() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
-          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
-            Pending Approvals & Actions
-            <Badge variant="outline" size="sm" className="text-xs">
-              Owner Sign-off Gate
-            </Badge>
+          <h1 className="text-2xl font-bold text-forest tracking-tight">
+            Approvals
           </h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            Review and approve automated financial decisions before they take effect. You have full control.
-          </p>
         </div>
       </div>
 

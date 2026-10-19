@@ -33,15 +33,9 @@ export default function BudgetsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
-          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
-            Spending Budgets
-            <Badge variant="outline" size="sm">
-              Monthly Limits
-            </Badge>
+          <h1 className="text-2xl font-bold text-forest tracking-tight">
+            Budgets
           </h1>
-          <p className="text-xs text-text-dim mt-1">
-            Set spending limits for expenses, watch where money goes, and avoid overspending.
-          </p>
         </div>
       </div>
 
@@ -67,9 +61,6 @@ export default function BudgetsPage() {
                   <h3 className="text-sm font-bold text-brand-900 capitalize">
                     {b.category.replace(/_/g, " ")}
                   </h3>
-                  <p className="text-xs text-brand-700/70 mt-0.5">
-                    Monthly spending allocation limit
-                  </p>
                 </div>
                 <Badge
                   variant={isExceeded ? "risk" : isWarning ? "warning" : "success"}

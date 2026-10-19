@@ -61,13 +61,13 @@ export function Topbar() {
 
   const mobileNavLinks = [
     { name: "Shop Overview", href: "/", icon: LayoutDashboard },
-    { name: "POS Sell Register", href: "/pos", icon: ShoppingCart },
-    { name: "Product Stock", href: "/inventory", icon: Boxes },
+    { name: "POS Register", href: "/pos", icon: ShoppingCart },
+    { name: "Inventory", href: "/inventory", icon: Boxes },
     { name: "Transactions", href: "/transactions", icon: Receipt },
     { name: "Bills & Invoices", href: "/invoices", icon: FileText },
-    { name: "Cash Flow & Forecast", href: "/cash-flow", icon: TrendingUp },
+    { name: "Cash Flow Forecast", href: "/cash-flow", icon: TrendingUp },
     { name: "Business Financing", href: "/financing", icon: Banknote },
-    { name: "Pending Approvals", href: "/action-center", icon: CheckSquare },
+    { name: "Approvals", href: "/action-center", icon: CheckSquare },
     { name: "Settings", href: "/settings", icon: Settings },
     { name: "Admin Console", href: "/admin", icon: ShieldCheck },
   ];

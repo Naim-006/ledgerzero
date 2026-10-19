@@ -151,15 +151,9 @@ export default function CashFlowSimulatorPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
         <div>
-          <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Cash Flow & Decision Simulator
-            <Badge variant="outline" size="sm">
-              Live Verified Math
-            </Badge>
+          <h1 className="text-2xl font-bold text-forest tracking-tight">
+            Cash Flow Forecast
           </h1>
-          <p className="text-xs text-brand-700/70 mt-1">
-            Test business decisions before taking action: customer payment delays, split supplier payments, or expense cuts.
-          </p>
         </div>
 
         {/* 3 Scenario Mode Presets */}
@@ -413,10 +407,7 @@ export default function CashFlowSimulatorPage() {
       <Card>
         <CardHeader>
           <div>
-            <CardTitle className="text-sm">Active Scenario Levers & Assumptions</CardTitle>
-            <p className="text-xs text-brand-700/70 mt-0.5">
-              Toggle or tweak hypothetical adjustments to test resilience against delayed payments.
-            </p>
+            <CardTitle className="text-sm">Active Scenario Levers</CardTitle>
           </div>
         </CardHeader>
 

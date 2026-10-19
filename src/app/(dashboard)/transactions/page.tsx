@@ -111,17 +111,14 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
-          <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Transactions Ledger
+          <h1 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
+            Transactions
             <Badge variant="outline" size="sm">
               {totalCount} Total
             </Badge>
           </h1>
-          <p className="text-xs text-brand-700/70 mt-1">
-            All sales, customer payments, supplier bills, and cash movements recorded for your shop.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -181,65 +178,114 @@ export default function TransactionsPage() {
         </div>
       </Card>
 
-      {/* Transactions Table */}
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Counterparty</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead className="w-12"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transactions.length === 0 ? (
+      {/* Transactions Table (Desktop) & Card List (Mobile) */}
+      <Card className="overflow-hidden">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-12 text-muted-foreground text-xs">
-                  No transactions recorded yet. Click &quot;+ Add Transaction&quot; to begin.
-                </TableCell>
+                <TableHead>Date</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Counterparty</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead className="w-12"></TableHead>
               </TableRow>
-            ) : (
-              transactions.map((tx) => (
-                <TableRow key={tx.id}>
-                  <TableCell className="font-mono text-xs text-brand-700">
-                    {formatShortDate(tx.date)}
-                  </TableCell>
-                  <TableCell className="font-medium text-brand-900">
-                    {tx.description}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" size="sm">
-                      {tx.category.replace(/_/g, " ")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-brand-800">
-                    {tx.counterpartyName || "—"}
-                  </TableCell>
-                  <TableCell className="text-right font-mono font-bold">
-                    <CurrencyAmount
-                      amount={tx.type === "expense" ? -tx.amount : tx.amount}
-                      colored
-                      showSign
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <button
-                      onClick={() => handleDeleteTransaction(tx.id)}
-                      disabled={!permissions.canMutateFinancialRecords}
-                      className="p-1 text-brand-700/40 hover:text-risk-600 disabled:opacity-30 transition-colors"
-                      title="Delete record"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+            </TableHeader>
+            <TableBody>
+              {transactions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-12 text-muted-foreground text-xs">
+                    No transactions recorded yet. Click &quot;+ Add Transaction&quot; to begin.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+              ) : (
+                transactions.map((tx) => (
+                  <TableRow key={tx.id}>
+                    <TableCell className="font-mono text-xs text-text-dim">
+                      {formatShortDate(tx.date)}
+                    </TableCell>
+                    <TableCell className="font-medium text-foreground">
+                      {tx.description}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" size="sm">
+                        {tx.category.replace(/_/g, " ")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-foreground/80">
+                      {tx.counterpartyName || "—"}
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-bold">
+                      <CurrencyAmount
+                        amount={tx.type === "expense" ? -tx.amount : tx.amount}
+                        colored
+                        showSign
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <button
+                        onClick={() => handleDeleteTransaction(tx.id)}
+                        disabled={!permissions.canMutateFinancialRecords}
+                        className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-30 transition-colors"
+                        title="Delete record"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="block md:hidden divide-y divide-border">
+          {transactions.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground text-xs p-4">
+              No transactions recorded yet. Click &quot;+ Add Transaction&quot; to begin.
+            </div>
+          ) : (
+            transactions.map((tx) => (
+              <div key={tx.id} className="p-4 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-medium text-xs text-foreground truncate">{tx.description}</div>
+                    <div className="text-[11px] font-mono text-text-dim mt-0.5">
+                      {formatShortDate(tx.date)} {tx.counterpartyName ? `• ${tx.counterpartyName}` : ""}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="font-mono font-bold text-sm">
+                      <CurrencyAmount
+                        amount={tx.type === "expense" ? -tx.amount : tx.amount}
+                        colored
+                        showSign
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <Badge variant="outline" size="sm" className="text-[10px]">
+                    {tx.category.replace(/_/g, " ")}
+                  </Badge>
+
+                  <button
+                    onClick={() => handleDeleteTransaction(tx.id)}
+                    disabled={!permissions.canMutateFinancialRecords}
+                    className="p-1 text-muted-foreground hover:text-red-500 disabled:opacity-30 transition-colors"
+                    title="Delete record"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </Card>
 
       {/* Add Transaction Modal */}

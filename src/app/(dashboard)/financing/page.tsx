@@ -102,18 +102,7 @@ export default function FinancingPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-border">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
-              <Banknote className="w-5 h-5" />
-            </div>
-            <h1 className="text-xl font-bold text-foreground">SME Financing & Capital Matching</h1>
-            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs">
-              AI Credit Copilot (Topic E)
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Data-backed financing options matched to your shop&apos;s real cash flow velocity, verified receivables, and stock inventory valuation.
-          </p>
+          <h1 className="text-2xl font-bold text-forest tracking-tight">Business Financing</h1>
         </div>
 
         <div className="flex items-center gap-2">
@@ -200,12 +189,9 @@ export default function FinancingPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-forest" />
-            Matched Working Capital & Credit Facilities ({eligibility?.options.length || 0})
+            <Sparkles className="w-4 h-4 text-forest-action" />
+            Matched Facilities ({eligibility?.options.length || 0})
           </h2>
-          <span className="text-xs text-muted-foreground">
-            Ranked by AI match algorithm & lowest cost of capital
-          </span>
         </div>
 
         {loading ? (

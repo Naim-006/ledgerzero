@@ -214,26 +214,18 @@ export default function InventoryPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-border">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-forest-action/10 text-forest-action rounded-lg">
-              <Boxes className="w-5 h-5" />
-            </div>
-            <h1 className="text-xl font-bold text-foreground">Stock & Inventory Management</h1>
-            <Badge variant="outline" className="text-xs">
-              {products.length} Products Tracked
-            </Badge>
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-forest-action/10 text-forest-action rounded-lg">
+            <Boxes className="w-5 h-5" />
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Real-time stock valuation, inventory restock adjustments, and automated sync with POS selling register.
-          </p>
+          <h1 className="text-xl font-bold text-foreground">Inventory</h1>
         </div>
 
         <div className="flex items-center gap-2.5">
           <Link href="/pos">
             <Button variant="outline" size="sm" className="gap-2 text-xs">
               <ShoppingCart className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              Open POS Register
+              POS Register
             </Button>
           </Link>
           <Button
@@ -242,7 +234,7 @@ export default function InventoryPage() {
             className="gap-2 bg-forest-action hover:bg-forest-actionHover text-white text-xs"
           >
             <Plus className="w-4 h-4" />
-            Add New Product
+            Add Product
           </Button>
         </div>
       </div>
@@ -351,9 +343,10 @@ export default function InventoryPage() {
         </Button>
       </div>
 
-      {/* Product Inventory Table */}
+      {/* Product Inventory Table (Desktop) & Card List (Mobile) */}
       <Card className="bg-surface border-border overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-border bg-surface-elevated/50 text-muted-foreground font-semibold">
@@ -485,6 +478,102 @@ export default function InventoryPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Responsive Card View */}
+        <div className="block md:hidden divide-y divide-border">
+          {loading ? (
+            <div className="p-8 text-center text-muted-foreground text-xs">
+              <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-forest" />
+              Loading inventory records...
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground text-xs">
+              <Boxes className="w-8 h-8 mx-auto mb-2 opacity-40" />
+              No products found matching the criteria.
+            </div>
+          ) : (
+            filteredProducts.map((p) => {
+              const isOutOfStock = p.stockQuantity <= 0;
+              const isLowStock = !isOutOfStock && p.stockQuantity <= p.minStockAlert;
+              const marginPercent =
+                p.unitPrice > 0
+                  ? Math.round(((p.unitPrice - (p.costPrice || 0)) / p.unitPrice) * 100)
+                  : 0;
+
+              return (
+                <div key={p.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="font-semibold text-sm text-foreground truncate">{p.name}</div>
+                      <div className="text-[11px] font-mono text-muted-foreground mt-0.5">
+                        SKU: {p.sku}
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-surface-subtle border border-border text-muted-foreground shrink-0">
+                      {p.category || "General"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs py-2 px-3 bg-surface-subtle rounded-xl border border-border/50">
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">Selling Price</span>
+                      <span className="font-bold text-foreground">{formatMoney(p.unitPrice)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">Stock Level</span>
+                      {isOutOfStock ? (
+                        <span className="text-red-500 font-semibold text-[11px]">0 {p.unit} (Out of Stock)</span>
+                      ) : isLowStock ? (
+                        <span className="text-amber-500 font-semibold text-[11px]">{p.stockQuantity} {p.unit} (Low)</span>
+                      ) : (
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-[11px]">{p.stockQuantity} {p.unit}</span>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">Cost / Margin</span>
+                      <span className="text-foreground">{p.costPrice ? formatMoney(p.costPrice) : "—"} ({marginPercent}%)</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-muted-foreground block">Total Value</span>
+                      <span className="font-semibold text-foreground">{formatMoney(p.unitPrice * p.stockQuantity)}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setAdjustingProduct(p);
+                        setAdjustQuantityDelta("");
+                      }}
+                      className="h-8 px-2.5 text-xs gap-1"
+                    >
+                      <ArrowUpDown className="w-3.5 h-3.5 text-forest" />
+                      Adjust
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleOpenEditModal(p)}
+                      className="h-8 px-2.5 text-xs gap-1"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      Edit
+                    </Button>
+                    <button
+                      onClick={() => handleDeleteProduct(p.id, p.name)}
+                      className="p-2 text-muted-foreground hover:text-red-500 rounded-lg hover:bg-surface-subtle transition-colors"
+                      title="Delete Product"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </Card>
 

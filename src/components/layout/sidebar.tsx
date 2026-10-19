@@ -61,8 +61,8 @@ export function Sidebar() {
       label: "Shop & Sales",
       items: [
         { name: "Shop Overview", href: "/", icon: LayoutDashboard },
-        { name: "POS Sell Register", href: "/pos", icon: ShoppingCart },
-        { name: "Product Stock", href: "/inventory", icon: Boxes },
+        { name: "POS Register", href: "/pos", icon: ShoppingCart },
+        { name: "Inventory", href: "/inventory", icon: Boxes },
         { name: "Transactions", href: "/transactions", icon: Receipt },
         { name: "Bills & Invoices", href: "/invoices", icon: FileText },
       ],
@@ -70,10 +70,10 @@ export function Sidebar() {
     {
       label: "Finance & Planning",
       items: [
-        { name: "Cash Flow & Forecast", href: "/cash-flow", icon: TrendingUp },
+        { name: "Cash Flow Forecast", href: "/cash-flow", icon: TrendingUp },
         { name: "Business Financing", href: "/financing", icon: Banknote },
         {
-          name: "Pending Approvals",
+          name: "Approvals",
           href: "/action-center",
           icon: CheckSquare,
           badge: pendingApprovalsCount,

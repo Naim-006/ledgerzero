@@ -290,27 +290,22 @@ export default function PosPage() {
     <div className="space-y-6">
       {/* Top Header & Fast Action Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-border">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
-              <ShoppingCart className="w-5 h-5" />
-            </div>
-            <h1 className="text-xl font-bold text-foreground">Point of Sale (POS) Cashier Register</h1>
-            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block mr-1" />
-              Live Sync
-            </Badge>
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg">
+            <ShoppingCart className="w-5 h-5" />
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Fast counter selling with instant stock deduction, customer invoice creation, and automatic revenue settlement.
-          </p>
+          <h1 className="text-xl font-bold text-foreground">POS Register</h1>
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Live Sync
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
           <Link href="/inventory">
             <Button variant="outline" size="sm" className="gap-2 text-xs">
               <Boxes className="w-4 h-4" />
-              Manage Inventory
+              Inventory
             </Button>
           </Link>
           <Button

@@ -75,15 +75,9 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
         <div>
-          <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Financial Reports & Summaries
-            <Badge variant="outline" size="sm">
-              Live Records
-            </Badge>
+          <h1 className="text-2xl font-bold text-forest tracking-tight">
+            Reports
           </h1>
-          <p className="text-xs text-brand-700/70 mt-1">
-            Overview of your cash flow, customer payments, bills, and downloadable spreadsheet reports.
-          </p>
         </div>
 
         <Button variant="primary" size="sm" onClick={handleExportCsv}>

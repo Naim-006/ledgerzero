@@ -84,21 +84,16 @@ export default function OverviewPage() {
   return (
     <div className="space-y-6 fade-in select-none">
       {/* Page Title & Quick Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
-        <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground">
-            Financial Overview
-          </h1>
-          <p className="text-xs text-text-dim mt-0.5">
-            Real-time summary of cash balance, receivables, and upcoming obligations.
-          </p>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border">
+        <h1 className="text-xl font-bold tracking-tight text-foreground">
+          Shop Overview
+        </h1>
 
         <div className="flex items-center gap-2">
           <Link href="/pos">
             <Button size="sm" className="bg-forest-action hover:bg-forest-actionHover text-white font-semibold text-xs shadow-xs gap-1.5">
               <ShoppingCart className="w-3.5 h-3.5 text-white" />
-              POS Quick Sell
+              POS Register
             </Button>
           </Link>
           <Link href="/action-center">
@@ -116,7 +111,7 @@ export default function OverviewPage() {
           <div>
             <h4 className="text-xs font-bold text-foreground">Fresh Workspace Ready</h4>
             <p className="text-xs text-text-dim mt-0.5">
-              Your financial ledger is clean and ready. Record your first transaction or invoice to begin tracking real cash flow.
+              Record your first transaction or invoice to begin tracking real cash flow.
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -136,7 +131,7 @@ export default function OverviewPage() {
           <div className="flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
             <div className="text-xs text-rose-900 dark:text-rose-200">
-              <span className="font-semibold">Projected Cash Shortfall:</span> Available cash of{" "}
+              <span className="font-semibold">Projected Shortfall:</span> Available cash of{" "}
               <strong><CurrencyAmount amount={cashPos?.currentCash || 0} /></strong> will not cover upcoming payables of{" "}
               <strong><CurrencyAmount amount={paySummary?.dueWithin7Days || 0} /></strong> due within 7 days.
             </div>
@@ -144,7 +139,7 @@ export default function OverviewPage() {
 
           <Link href="/cash-flow">
             <button className="text-xs font-semibold text-rose-700 dark:text-rose-300 hover:text-rose-900 flex items-center gap-1 shrink-0">
-              Review Cash Plan
+              Review Plan
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </Link>
@@ -156,7 +151,7 @@ export default function OverviewPage() {
         <div className="flex items-center justify-between gap-1 mb-3">
           <span className="text-xs font-bold text-foreground flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-forest-action animate-pulse" />
-            Shop Operations Flow
+            Operations Workflow
           </span>
         </div>
 
@@ -169,16 +164,16 @@ export default function OverviewPage() {
               <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
                 <span className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-forest-action/20 text-forest-action border border-forest-action/40 text-[10px] flex items-center justify-center font-bold shrink-0">1</span>
-                  POS Sell Register
+                  POS Register
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
               </div>
               <p className="text-[11px] text-text-dim leading-snug">
-                Checkout sales at cashier counter and print thermal receipts.
+                Counter sales and instant receipts.
               </p>
             </div>
             <div className="mt-2 text-[10px] font-semibold text-forest-action">
-              Auto-deducts inventory →
+              Deducts stock →
             </div>
           </Link>
 
@@ -190,16 +185,16 @@ export default function OverviewPage() {
               <div className="flex items-center justify-between text-xs font-bold text-foreground mb-1">
                 <span className="flex items-center gap-2">
                   <span className="w-5 h-5 rounded-full bg-forest-action/20 text-forest-action border border-forest-action/40 text-[10px] flex items-center justify-center font-bold shrink-0">2</span>
-                  Product Stock
+                  Inventory
                 </span>
                 <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
               </div>
               <p className="text-[11px] text-text-dim leading-snug">
-                Track quantity in hand, low-stock warnings & profit margin.
+                Stock counts, valuations & alerts.
               </p>
             </div>
             <div className="mt-2 text-[10px] font-semibold text-forest-action">
-              Manage inventory →
+              Manage stock →
             </div>
           </Link>
 
@@ -216,11 +211,11 @@ export default function OverviewPage() {
                 <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
               </div>
               <p className="text-[11px] text-text-dim leading-snug">
-                Manage vendor bills to pay and uncollected customer credit.
+                Customer credit and supplier bills.
               </p>
             </div>
             <div className="mt-2 text-[10px] font-semibold text-forest-action">
-              Feeds cash schedule →
+              Cash schedule →
             </div>
           </Link>
 
@@ -237,11 +232,11 @@ export default function OverviewPage() {
                 <ArrowRight className="w-3.5 h-3.5 text-text-dim group-hover:text-forest-action group-hover:translate-x-0.5 transition-all" />
               </div>
               <p className="text-[11px] text-text-dim leading-snug">
-                7 & 30-day projection with deficit warnings & what-if planner.
+                Liquidity projections and planning.
               </p>
             </div>
             <div className="mt-2 text-[10px] font-semibold text-forest-action">
-              Protect liquidity →
+              Protect runway →
             </div>
           </Link>
         </div>
@@ -250,39 +245,39 @@ export default function OverviewPage() {
       {/* Top 4 Financial Metric Cards — Clean & Plain English */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          title="Cash in Hand & Bank"
+          title="Total Cash"
           amount={cashPos?.currentCash || 0}
-          period="Verified available money"
+          period="Liquid & bank accounts"
           href="/transactions"
-          trend={cashPos?.totalIncome ? { value: "Money coming in", isPositive: true } : undefined}
+          trend={cashPos?.totalIncome ? { value: "Positive cash flow", isPositive: true } : undefined}
         />
 
         <MetricCard
-          title="Money Owed to You"
+          title="Receivables"
           amount={recSummary?.totalReceivables || 0}
-          period="Unpaid customer invoices"
+          period="Open customer invoices"
           href="/receivables"
           variant={recSummary?.overdueAmount ? "warning" : "default"}
-          trend={recSummary?.count ? { value: `${recSummary.count} invoices open`, isPositive: true } : undefined}
+          trend={recSummary?.count ? { value: `${recSummary.count} open`, isPositive: true } : undefined}
         />
 
         <MetricCard
-          title="Upcoming Bills (7 Days)"
+          title="Upcoming Payables"
           amount={paySummary?.dueWithin7Days || 0}
-          period="Bills due this week"
+          period="Due within 7 days"
           href="/payables"
           variant={paySummary?.dueWithin7Days ? "risk" : "default"}
-          trend={paySummary?.dueWithin7Days ? { value: "Bills scheduled", isPositive: false } : undefined}
+          trend={paySummary?.dueWithin7Days ? { value: "Scheduled", isPositive: false } : undefined}
         />
 
         <MetricCard
-          title="Cash Left After Bills"
+          title="Net Liquidity"
           amount={net7DayGap}
-          period="Money left after paying bills"
+          period="Estimated 7-day balance"
           href="/cash-flow"
           variant={net7DayGap < 0 ? "risk" : "default"}
           trend={net7DayGap !== 0 ? {
-            value: net7DayGap < 0 ? "Shortfall warning" : "Safe balance",
+            value: net7DayGap < 0 ? "Deficit" : "Surplus",
             isPositive: net7DayGap >= 0,
           } : undefined}
         />

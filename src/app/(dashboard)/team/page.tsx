@@ -63,15 +63,9 @@ export default function TeamPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slateSurface-200">
         <div>
-          <h1 className="text-2xl font-bold text-forest tracking-tight flex items-center gap-2">
-            Team & Role-Based Permissions
-            <Badge variant="outline" size="sm">
-              Role: {currentRole}
-            </Badge>
+          <h1 className="text-2xl font-bold text-forest tracking-tight">
+            Team
           </h1>
-          <p className="text-xs text-brand-700/70 mt-1">
-            Enforce separation of duties: only authorized roles can approve autonomous intervention tasks.
-          </p>
         </div>
 
         <Button
@@ -85,65 +79,101 @@ export default function TeamPage() {
         </Button>
       </div>
 
-
-
-      {/* Team Members Table */}
+      {/* Team Members List */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Active Workspace Members</CardTitle>
+          <CardTitle className="text-sm">Team Members</CardTitle>
         </CardHeader>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Member</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {members.map((m) => (
-              <TableRow key={m.id}>
-                <TableCell className="font-medium text-brand-900 flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-forest-action/10 text-forest-action font-bold text-xs flex items-center justify-center">
-                    {m.name.slice(0, 2).toUpperCase()}
-                  </div>
-                  <span>{m.name}</span>
-                </TableCell>
-                <TableCell className="text-xs text-brand-700">{m.email}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      m.role === "Owner"
-                        ? "lime"
-                        : m.role === "Admin"
-                        ? "default"
-                        : "outline"
-                    }
-                    size="sm"
-                  >
-                    {m.role}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <span className="text-[11px] text-success-700 font-semibold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-success-500" />
-                    Active
-                  </span>
-                </TableCell>
+        {/* Mobile View */}
+        <div className="md:hidden divide-y divide-slateSurface-200 dark:divide-slate-800">
+          {members.map((m) => (
+            <div key={m.id} className="p-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-forest-action/10 text-forest-action font-bold text-xs flex items-center justify-center shrink-0">
+                  {m.name.slice(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-brand-900 dark:text-slate-100">{m.name}</div>
+                  <div className="text-xs text-brand-700/70 dark:text-slate-400">{m.email}</div>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                <Badge
+                  variant={
+                    m.role === "Owner"
+                      ? "lime"
+                      : m.role === "Admin"
+                      ? "default"
+                      : "outline"
+                  }
+                  size="sm"
+                >
+                  {m.role}
+                </Badge>
+                <span className="text-[10px] text-success-700 font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-success-500" />
+                  Active
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Desktop Table */}
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Member</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {members.map((m) => (
+                <TableRow key={m.id}>
+                  <TableCell className="font-medium text-brand-900 flex items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-forest-action/10 text-forest-action font-bold text-xs flex items-center justify-center">
+                      {m.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <span>{m.name}</span>
+                  </TableCell>
+                  <TableCell className="text-xs text-brand-700">{m.email}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        m.role === "Owner"
+                          ? "lime"
+                          : m.role === "Admin"
+                          ? "default"
+                          : "outline"
+                      }
+                      size="sm"
+                    >
+                      {m.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-[11px] text-success-700 font-semibold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-success-500" />
+                      Active
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
 
       {/* Permissions Matrix */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Role Capabilities & Enforcement Matrix</CardTitle>
+          <CardTitle className="text-sm">Permissions Matrix</CardTitle>
         </CardHeader>
-        <Table>
-          <TableHeader>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
             <TableRow>
               <TableHead>Capability</TableHead>
               <TableHead className="text-center">Owner</TableHead>
@@ -244,6 +274,7 @@ export default function TeamPage() {
             </TableRow>
           </TableBody>
         </Table>
+        </div>
       </Card>
 
       {/* Invite Member Modal */}
